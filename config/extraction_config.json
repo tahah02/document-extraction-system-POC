@@ -1,0 +1,51 @@
+{
+  "payslip": {
+    "name": {
+      "keywords": ["name", "employee name", "employee"],
+      "pattern": null,
+      "required": true
+    },
+    "id_number": {
+      "keywords": ["id", "nric", "employee id", "identification"],
+      "pattern": "\\d{6}-\\d{2}-\\d{4}",
+      "required": true
+    },
+    "gross_income": {
+      "keywords": ["gross", "gross income", "gross salary", "total income"],
+      "pattern": "[\\d,]+\\.\\d{2}",
+      "required": true
+    },
+    "net_income": {
+      "keywords": ["net", "net income", "take home", "net salary"],
+      "pattern": "[\\d,]+\\.\\d{2}",
+      "required": true
+    },
+    "total_deduction": {
+      "keywords": ["deduction", "total deduction", "total deductions"],
+      "pattern": "[\\d,]+\\.\\d{2}",
+      "required": true
+    },
+    "month_year": {
+      "keywords": ["month", "period", "date", "month/year"],
+      "pattern": "\\d{2}/\\d{4}",
+      "required": true
+    }
+  },
+  "bank_statement": {
+    "account_holder_name": {
+      "keywords": ["account holder", "name", "account name"],
+      "pattern": null,
+      "required": true
+    },
+    "account_number": {
+      "keywords": ["account", "account number", "account no"],
+      "pattern": "\\d{2}-\\d{7}-\\d",
+      "required": true
+    },
+    "statement_date": {
+      "keywords": ["date", "statement date", "statement period"],
+      "pattern": "\\d{2}/\\d{2}/\\d{4}",
+      "required": true
+    }
+  }
+}
