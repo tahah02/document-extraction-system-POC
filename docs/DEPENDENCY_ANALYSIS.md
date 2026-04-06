@@ -1,6 +1,6 @@
-# 📦 Dependency Analysis & Docker Deployment Issues
+﻿#  Dependency Analysis & Docker Deployment Issues
 
-## 🔴 Current Installation Issues
+##  Current Installation Issues
 
 ### Issue 1: PyMuPDF (pymupdf)
 **Problem**: 
@@ -12,7 +12,7 @@
 - Use latest version: `pymupdf==1.27.2.2`
 - Or use pre-built wheels: `pip install --only-binary :all: pymupdf`
 
-**Docker Impact**: ⚠️ MAJOR
+**Docker Impact**:  MAJOR
 - Docker image will need: `build-essential`, `gcc`, `g++`
 - Image size increases significantly
 - Build time increases
@@ -29,7 +29,7 @@
 - Install: `pip install paddleocr`
 - Pre-download models in Docker
 
-**Docker Impact**: ⚠️ MAJOR
+**Docker Impact**:  MAJOR
 - Image size: +500MB-1GB
 - Build time: 5-10 minutes
 - Runtime: Models cached in container
@@ -46,7 +46,7 @@
 - Install: `pip install easyocr`
 - Pre-download models
 
-**Docker Impact**: ⚠️ CRITICAL
+**Docker Impact**:  CRITICAL
 - Image size: +1GB-2GB
 - PyTorch alone: 500MB+
 - Build time: 10-15 minutes
@@ -63,7 +63,7 @@
 - Linux: `apt-get install tesseract-ocr`
 - Mac: `brew install tesseract`
 
-**Docker Impact**: ✅ MINOR
+**Docker Impact**:  MINOR
 - Just system package
 - Image size: +50MB
 - Build time: <1 minute
@@ -78,13 +78,13 @@
 **Solution**:
 - Install: `pip install opencv-python`
 
-**Docker Impact**: ⚠️ MEDIUM
+**Docker Impact**:  MEDIUM
 - Image size: +150MB
 - Requires: libsm6, libxext6, libxrender-dev
 
 ---
 
-## 📊 Pip Installation Strategy
+##  Pip Installation Strategy
 
 ### Recommended Approach:
 
@@ -144,7 +144,7 @@ aiofiles
 
 ---
 
-## 🐳 Docker Deployment Issues
+##  Docker Deployment Issues
 
 ### Issue 1: Image Size
 **Current**: 2-3GB (with all OCR engines)
@@ -205,7 +205,7 @@ RUN apt-get install -y libgomp1
 
 ---
 
-## 📋 Recommended Docker Setup
+##  Recommended Docker Setup
 
 ### Dockerfile Strategy:
 
@@ -243,7 +243,7 @@ CMD ["python", "-m", "app.main"]
 
 ---
 
-## ✅ Current Pip Installation Issues (Windows)
+##  Current Pip Installation Issues (Windows)
 
 ### 1. PyMuPDF
 ```
@@ -267,36 +267,36 @@ ImportError: libsm6 not found
 
 ---
 
-## 🎯 Immediate Action Items
+##  Immediate Action Items
 
 ### For Local Development (Windows):
-1. ✅ Use `pymupdf==1.27.2.2`
-2. ✅ Install with pre-built wheels: `pip install --only-binary :all: pymupdf`
-3. ✅ Skip EasyOCR (too heavy)
-4. ✅ Use PaddleOCR or Tesseract
+1.  Use `pymupdf==1.27.2.2`
+2.  Install with pre-built wheels: `pip install --only-binary :all: pymupdf`
+3.  Skip EasyOCR (too heavy)
+4.  Use PaddleOCR or Tesseract
 
 ### For Docker Deployment:
-1. ⚠️ Use multi-stage builds
-2. ⚠️ Pre-download OCR models
-3. ⚠️ Install system dependencies
-4. ⚠️ Use slim base image
-5. ⚠️ Cache pip packages
+1.  Use multi-stage builds
+2.  Pre-download OCR models
+3.  Install system dependencies
+4.  Use slim base image
+5.  Cache pip packages
 
 ---
 
-## 📊 Comparison Table
+##  Comparison Table
 
 | Component | Local (Windows) | Docker | Issue |
 |-----------|-----------------|--------|-------|
-| PyMuPDF | ⚠️ Needs VS | ✅ Easy | Build tools |
-| PaddleOCR | ✅ Works | ⚠️ 500MB | Size |
-| EasyOCR | ⚠️ Heavy | ❌ 1GB+ | PyTorch |
-| Tesseract | ✅ Works | ✅ Easy | System pkg |
-| OpenCV | ✅ Works | ⚠️ Libs needed | System libs |
+| PyMuPDF |  Needs VS |  Easy | Build tools |
+| PaddleOCR |  Works |  500MB | Size |
+| EasyOCR |  Heavy |  1GB+ | PyTorch |
+| Tesseract |  Works |  Easy | System pkg |
+| OpenCV |  Works |  Libs needed | System libs |
 
 ---
 
-## 🚀 Recommended Setup
+##  Recommended Setup
 
 ### For Now (Local):
 ```
@@ -334,7 +334,7 @@ aiofiles
 
 ---
 
-## ⚠️ Docker Deployment Challenges
+##  Docker Deployment Challenges
 
 1. **Image Size**: 1-2GB (acceptable)
 2. **Build Time**: 10-15 minutes (acceptable)
@@ -344,22 +344,23 @@ aiofiles
 
 ---
 
-## ✅ Summary
+##  Summary
 
 ### Current Issues:
-- ❌ PyMuPDF version mismatch
-- ❌ Visual Studio not installed
-- ⚠️ Large dependencies (OCR models)
+-  PyMuPDF version mismatch
+-  Visual Studio not installed
+-  Large dependencies (OCR models)
 
 ### Solutions:
-- ✅ Update to `pymupdf==1.27.2.2`
-- ✅ Use pre-built wheels
-- ✅ Docker handles system dependencies
+-  Update to `pymupdf==1.27.2.2`
+-  Use pre-built wheels
+-  Docker handles system dependencies
 
 ### Docker Readiness:
-- ⚠️ Image will be 1-2GB
-- ⚠️ Build time 10-15 minutes
-- ✅ Runtime performance good
-- ✅ All dependencies manageable
+-  Image will be 1-2GB
+-  Build time 10-15 minutes
+-  Runtime performance good
+-  All dependencies manageable
 
 **No blocking issues for Docker deployment!**
+

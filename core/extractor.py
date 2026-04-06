@@ -50,7 +50,6 @@ class FieldExtractor:
             "month_year": self._extract_field(text, "month_year")
         }
         
-        # Fallback: Try direct pattern matching for Malay payslips
         if not extracted["name"]:
             match = re.search(r"Nama\s+([A-Za-z\s]+?)(?:\n|No)", text, re.IGNORECASE)
             if match:
@@ -60,12 +59,10 @@ class FieldExtractor:
             match = re.search(r"Gaji\s+Pokok\s+([\d,\s]+?)(?:\s+\d{4}|$|\n)", text, re.IGNORECASE)
             if match:
                 value = match.group(1).strip().replace(" ", "")
-                # Keep only first number
                 value = re.match(r"[\d,]+", value).group(0) if re.match(r"[\d,]+", value) else value
                 extracted["gross_income"] = value
         
         if not extracted["net_income"]:
-            # Try multiple patterns for net income
             patterns = [
                 r"Gaji\s+Bersih\s+([\d,\s]+?)(?:\n|Pendapatan)",
                 r"Gaji\s+Bersih\s+([\d,\s]+?)$"
@@ -92,9 +89,7 @@ class FieldExtractor:
             "statement_date": self._extract_field(text, "statement_date")
         }
         
-        # Fallback: Try direct pattern matching for bank statements
         if not extracted["account_holder_name"]:
-            # Try multiple patterns
             patterns = [
                 r"Account\s+Holder[:\s]+([A-Za-z\s]+?)(?:\n|Account)",
                 r"Name[:\s]+([A-Za-z\s]+?)(?:\n|Account)",
@@ -108,9 +103,7 @@ class FieldExtractor:
                         extracted["account_holder_name"] = value
                         break
         
-        # Clean up account holder name
         if extracted["account_holder_name"]:
-            # Remove "CIMB BANK" and "Statement of" etc
             name = extracted["account_holder_name"]
             name = re.sub(r"CIMB\s+BANK|Statement\s+of|Account\s+Holder", "", name, flags=re.IGNORECASE)
             name = name.strip()
@@ -129,23 +122,19 @@ class FieldExtractor:
                 logger.warning(f"Field not found in config: {field_name}")
                 return None
             
-            # Try pattern matching first
             if field_config.get("pattern"):
                 match = re.search(field_config["pattern"], text, re.IGNORECASE)
                 if match:
                     return match.group(0)
             
-            # Try keyword-based extraction
             keywords = field_config.get("keywords", [])
             for keyword in keywords:
-                # More flexible pattern to handle spaces and formatting
                 pattern = f"{keyword}[:\\s]+([^\\n]+?)(?=\\n|$|[A-Z][a-z])"
                 match = re.search(pattern, text, re.IGNORECASE)
                 if match:
                     value = match.group(1).strip()
-                    # Clean up the value
-                    value = re.sub(r'\s+', ' ', value)  # Normalize spaces
-                    value = re.sub(r'[^\w\s\-./,RM]', '', value).strip()  # Keep important chars
+                    value = re.sub(r'\s+', ' ', value)
+                    value = re.sub(r'[^\w\s\-./,RM]', '', value).strip()
                     if value and len(value) > 1:
                         return value
             

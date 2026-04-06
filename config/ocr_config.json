@@ -1,5 +1,5 @@
 {
-  "engine": "paddleocr",
+  "engine": "easyocr",
   "language": "en",
   "confidence_threshold": 0.5,
   "use_angle_cls": true,

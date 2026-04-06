@@ -17,8 +17,8 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "uploads"
     ALLOWED_EXTENSIONS: List[str] = ["pdf", "jpg", "jpeg", "png", "docx", "doc"]
     
-    OCR_ENGINE: str = os.getenv("OCR_ENGINE", "tesseract")
-    OCR_LANGUAGE: str = "eng"
+    OCR_ENGINE: str = os.getenv("OCR_ENGINE", "paddleocr")
+    OCR_LANGUAGE: str = "en"
     OCR_CONFIDENCE_THRESHOLD: float = 0.5
     
     OUTPUT_DIR: str = "output"

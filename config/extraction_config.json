@@ -11,18 +11,18 @@
       "required": true
     },
     "gross_income": {
-      "keywords": ["gross", "gross income", "gross salary", "total income"],
-      "pattern": "[\\d,]+\\.\\d{2}",
+      "keywords": ["gross", "gross income", "gross salary", "total income", "gaji pokok", "gaji kasar"],
+      "pattern": null,
       "required": true
     },
     "net_income": {
-      "keywords": ["net", "net income", "take home", "net salary"],
-      "pattern": "[\\d,]+\\.\\d{2}",
+      "keywords": ["net", "net income", "take home", "net salary", "gaji bersih"],
+      "pattern": null,
       "required": true
     },
     "total_deduction": {
-      "keywords": ["deduction", "total deduction", "total deductions"],
-      "pattern": "[\\d,]+\\.\\d{2}",
+      "keywords": ["deduction", "total deduction", "total deductions", "jumlah potongan"],
+      "pattern": null,
       "required": true
     },
     "month_year": {

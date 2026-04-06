@@ -1,13 +1,41 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+
 
 class PayslipData(BaseModel):
-    name: str = Field(..., description="Employee name")
-    id_number: str = Field(..., description="National ID number")
-    gross_income: str = Field(..., description="Gross income")
-    net_income: str = Field(..., description="Net income")
-    total_deduction: str = Field(..., description="Total deductions")
-    month_year: str = Field(..., description="Pay period (MM/YYYY)")
+    
+    name: str = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="Employee full name"
+    )
+    
+    id_number: str = Field(
+        ...,
+        pattern=r"^\d{6}-\d{2}-\d{4}$",
+        description="National ID number (XXXXXX-XX-XXXX)"
+    )
+    
+    gross_income: str = Field(
+        ...,
+        description="Gross income amount"
+    )
+    
+    net_income: str = Field(
+        ...,
+        description="Net income after deductions"
+    )
+    
+    total_deduction: str = Field(
+        ...,
+        description="Total deductions from gross income"
+    )
+    
+    month_year: str = Field(
+        ...,
+        pattern=r"^\d{2}/\d{4}$",
+        description="Pay period (MM/YYYY)"
+    )
     
     class Config:
         json_schema_extra = {

@@ -1,15 +1,16 @@
 import os
 import sys
 
-# Set PaddleOCR CPU mode BEFORE importing anything else
 os.environ['PADDLE_DEVICE'] = 'cpu'
 os.environ['PADDLE_DISABLE_ONEDNN'] = '1'
 os.environ['PADDLE_DISABLE_FAST_MATH'] = '1'
 os.environ['PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK'] = 'True'
 
-# Set Tesseract path
-import pytesseract
-pytesseract.pytesseract.pytesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+try:
+    import pytesseract
+    pytesseract.pytesseract.pytesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+except:
+    pass
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,7 +18,6 @@ from app.api.routes import router
 from app.config import settings
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
 app = FastAPI(

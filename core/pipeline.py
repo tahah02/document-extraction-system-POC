@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Any, List
 from datetime import datetime
 import json
+from pathlib import Path
 
 from core.ocr_engine import get_ocr_engine
 from core.document_classifier import DocumentClassifier
@@ -15,12 +16,33 @@ logger = logging.getLogger(__name__)
 
 class ExtractionPipeline:
     
-    def __init__(self, ocr_engine: str = "easyocr"):
+    def __init__(self, ocr_engine: str = None):
+        # Read OCR engine from config if not provided
+        if ocr_engine is None:
+            ocr_engine = self._load_ocr_engine_from_config()
+        
         self.ocr_engine = get_ocr_engine(ocr_engine)
         self.classifier = DocumentClassifier()
         self.extractor = FieldExtractor()
         self.file_manager = FileManager()
         self.text_cleaner = TextCleaner()
+    
+    def _load_ocr_engine_from_config(self) -> str:
+        """Load OCR engine name from config/ocr_config.json"""
+        try:
+            config_path = Path("config/ocr_config.json")
+            if config_path.exists():
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+                    engine = config.get("engine", "paddleocr")
+                    logger.info(f"Loaded OCR engine from config: {engine}")
+                    return engine
+            else:
+                logger.warning("ocr_config.json not found, using default: paddleocr")
+                return "paddleocr"
+        except Exception as e:
+            logger.error(f"Error loading OCR config: {str(e)}, using default: paddleocr")
+            return "paddleocr"
     
     def process(self, upload_id: str, file_path: str) -> Dict[str, Any]:
         try:
@@ -49,6 +71,15 @@ class ExtractionPipeline:
                 # Log extracted text for debugging
                 print(f"\n=== EXTRACTED TEXT (first 500 chars) ===\n{text[:500]}\n===")
                 logger.info(f"Extracted text length: {len(text)}")
+                
+                # Save full text to file for debugging
+                try:
+                    debug_text_path = Path(self.file_manager.get_processed_dir(upload_id)) / f"extracted_text_page_{doc_num}.txt"
+                    with open(debug_text_path, 'w', encoding='utf-8') as f:
+                        f.write(text)
+                    logger.info(f"Saved extracted text to {debug_text_path}")
+                except Exception as e:
+                    logger.warning(f"Could not save debug text: {str(e)}")
                 
                 doc_type, type_confidence = self.classifier.classify(text)
                 logger.info(f"Classified as: {doc_type} (confidence: {type_confidence})")
