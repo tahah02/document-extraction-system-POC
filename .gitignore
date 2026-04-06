@@ -47,6 +47,11 @@ output/
 .coverage
 htmlcov/
 
+# Folders to exclude
+docs/
+Result/
+Dataset/
+
 # OS
 Thumbs.db
 .DS_Store
