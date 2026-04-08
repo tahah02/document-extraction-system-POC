@@ -14,7 +14,9 @@ class DocumentClassifier:
         "employer", "employee name", "designation",
         "gaji", "gaji pokok", "gaji bersih", "cukai pendapatan",
         "kwsp", "perkeso", "takaful", "potongan", "pendapatan",
-        "jumlah", "bulan", "nama", "no k/p", "no gaji"
+        "jumlah", "bulan", "nama", "no k/p", "no gaji",
+        "راتب", "الراتب", "الدخل", "الخصم", "الموظف",
+        "الإجمالي", "الصافي", "الخصومات", "الهوية", "رقم"
     ]
     
     BANK_STATEMENT_KEYWORDS = [
@@ -23,7 +25,12 @@ class DocumentClassifier:
         "opening balance", "closing balance", "statement period",
         "bank name", "account holder", "date", "amount",
         "reference", "description", "debit", "credit",
-        "statement of account", "account summary"
+        "statement of account", "account summary",
+        "penyata", "akaun", "baki", "transaksi", "tarikh",
+        "pengeluaran", "deposit", "pembukaan", "penutup",
+        "pemegang", "rujukan", "deskripsi", "jumlah",
+        "كشف", "حساب", "رصيد", "معاملة", "تاريخ",
+        "إيداع", "سحب", "الافتتاحي", "الختامي", "صاحب"
     ]
     
     @staticmethod

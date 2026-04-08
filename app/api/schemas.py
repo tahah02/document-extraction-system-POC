@@ -47,6 +47,8 @@ class StatusResponse(BaseModel):
     status: str
     upload_id: str
     message: Optional[str] = None
+    detected_language: Optional[str] = None
+    language_confidence: Optional[float] = 0.0
     result: Optional[ExtractionResult] = None
 
 class ErrorResponse(BaseModel):

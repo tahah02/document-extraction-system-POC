@@ -27,17 +27,19 @@ class FieldExtractor:
     def _get_default_config(self) -> Dict[str, Any]:
         return {
             "payslip": {
-                "name": {"keywords": ["name", "employee name", "nama", "nama pegawai"], "pattern": None},
-                "id_number": {"keywords": ["id", "nric", "employee id", "no. k/p", "no k/p"], "pattern": r"\d{6}-\d{2}-\d{4}|\d{12}"},
-                "gross_income": {"keywords": ["gross", "gross income", "gross salary", "gaji kasar", "gaji pokok", "jumlah pendapatan"], "pattern": r"[\d,]+\.?\d{0,2}"},
-                "net_income": {"keywords": ["net", "net income", "take home", "gaji bersih"], "pattern": r"[\d,]+\.?\d{0,2}"},
-                "total_deduction": {"keywords": ["deduction", "total deduction", "jumlah potongan"], "pattern": r"[\d,]+\.?\d{0,2}"},
-                "month_year": {"keywords": ["month", "period", "date", "bulan", "tarikh"], "pattern": r"\d{1,2}/\d{4}|\d{1,2}-\d{4}"}
+                "name": {"keywords": ["name", "employee name", "nama", "nama pegawai", "الاسم", "اسم الموظف"], "pattern": None},
+                "id_number": {"keywords": ["id", "nric", "employee id", "no. k/p", "no k/p", "رقم الهوية", "رقم الموظف"], "pattern": r"\d{6}-\d{2}-\d{4}|\d{12}"},
+                "gross_income": {"keywords": ["gross", "gross income", "gross salary", "gaji kasar", "gaji pokok", "jumlah pendapatan", "الراتب الإجمالي", "الدخل الإجمالي"], "pattern": r"[\d,]+\.?\d{0,2}"},
+                "net_income": {"keywords": ["net", "net income", "take home", "gaji bersih", "صافي الراتب", "الدخل الصافي"], "pattern": r"[\d,]+\.?\d{0,2}"},
+                "total_deduction": {"keywords": ["deduction", "total deduction", "jumlah potongan", "الخصم الإجمالي", "إجمالي الخصومات"], "pattern": r"[\d,]+\.?\d{0,2}"},
+                "month_year": {"keywords": ["month", "period", "date", "bulan", "tarikh", "الشهر", "التاريخ"], "pattern": r"\d{1,2}/\d{4}|\d{1,2}-\d{4}"}
             },
             "bank_statement": {
-                "account_holder_name": {"keywords": ["account holder", "name", "nama pemegang"], "pattern": None},
-                "account_number": {"keywords": ["account", "account number", "no. akaun"], "pattern": r"\d{2}-\d{7}-\d|\d{10,12}"},
-                "statement_date": {"keywords": ["date", "statement date", "tarikh"], "pattern": r"\d{1,2}/\d{1,2}/\d{4}|\d{1,2}-\d{1,2}-\d{4}"}
+                "account_holder_name": {"keywords": ["account holder", "name", "nama pemegang", "اسم صاحب الحساب"], "pattern": None},
+                "account_number": {"keywords": ["account", "account number", "no. akaun", "رقم الحساب"], "pattern": r"\d{2}-\d{7}-\d|\d{10,12}"},
+                "statement_date": {"keywords": ["date", "statement date", "tarikh", "تاريخ الكشف"], "pattern": r"\d{1,2}/\d{1,2}/\d{4}|\d{1,2}-\d{1,2}-\d{4}"},
+                "opening_balance": {"keywords": ["opening balance", "baki pembukaan", "الرصيد الافتتاحي"], "pattern": r"[\d,]+\.?\d{0,2}"},
+                "closing_balance": {"keywords": ["closing balance", "baki penutup", "الرصيد الختامي"], "pattern": r"[\d,]+\.?\d{0,2}"}
             }
         }
     
@@ -110,8 +112,15 @@ class FieldExtractor:
         }
         
         if not extracted["account_holder_name"]:
+            match = re.search(r"(?:Statement Date|Tarikh Penyata).*?\n\s*([A-Za-z\s]+?)(?:\n\s*\d+,?\s*JALAN|\n\s*\d+\s+[A-Z])", text, re.IGNORECASE | re.DOTALL)
+            if match:
+                name = match.group(1)
+                if name and len(name) > 3:
+                    extracted["account_holder_name"] = name
+        
+        if not extracted["account_holder_name"]:
             lines = text.split('\n')
-            for line in lines:
+            for i, line in enumerate(lines):
                 line = line.strip()
                 if not line:
                     continue
@@ -119,9 +128,10 @@ class FieldExtractor:
                 if len(line) > 5 and len(line) < 100:
                     has_capital_words = len(re.findall(r'\b[A-Z][a-z]+\b', line)) >= 2
                     
-                    if has_capital_words and not re.search(r"CIMB|Statement|Account|Number|Date|Balance|Period|Page|Halaman|Summary|Ringkasan|JALAN|KUALA|LUMPUR|RM|Tarikh|Penyata|Akaun|Simpanan|Transaksi|Butir|Withdrawal|Deposit|GST|Baki|Pengeluaran|Rujukan|Diskripsi", line, re.IGNORECASE):
-                        extracted["account_holder_name"] = line
-                        break
+                    if has_capital_words and not re.search(r"CIMB|Statement|Account|Number|Date|Balance|Period|Page|Halaman|Summary|Ringkasan|JALAN|KUALA|LUMPUR|RM|Tarikh|Penyata|Akaun|Simpanan|Transaksi|Butir|Withdrawal|Deposit|GST|Baki|Pengeluaran|Rujukan|Diskripsi|51-|52-|53-|54-|55-|56-|57-|58-|59-|60-|Savings|Account|No|Eligible|PIDM|Bonus|Points|Mata|Ganjaran|Diperolehi|Dilunaskan|Dipindahkan|Terkini|Expiring|Lupus", line, re.IGNORECASE):
+                        if i > 0:
+                            extracted["account_holder_name"] = line
+                            break
         
         opening_match = re.search(r"OPENING\s+BALANCE\s+([\d,.\s]+?)(?:\n|$|\d{2}/\d{2}/\d{4})", text, re.IGNORECASE)
         if opening_match and opening_match.group(1):
