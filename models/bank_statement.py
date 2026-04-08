@@ -22,11 +22,23 @@ class BankStatementData(BaseModel):
         description="Statement date (DD/MM/YYYY)"
     )
     
+    opening_balance: str = Field(
+        ...,
+        description="Opening balance amount"
+    )
+    
+    closing_balance: str = Field(
+        ...,
+        description="Closing balance amount"
+    )
+    
     class Config:
         json_schema_extra = {
             "example": {
                 "account_holder_name": "SITI AISAH BINTI GHAZALI",
                 "account_number": "51-1103355-2",
-                "statement_date": "28/02/2026"
+                "statement_date": "28/02/2026",
+                "opening_balance": "550.00",
+                "closing_balance": "348.77"
             }
         }

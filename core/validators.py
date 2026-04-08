@@ -39,7 +39,7 @@ class DataValidator:
     @staticmethod
     def validate_bank_statement(data: Dict[str, Any]) -> Tuple[bool, str]:
         try:
-            required_fields = ["account_holder_name", "account_number", "statement_date"]
+            required_fields = ["account_holder_name", "account_number", "statement_date", "opening_balance", "closing_balance"]
             missing_fields = [f for f in required_fields if not data.get(f)]
             
             if missing_fields:
@@ -50,6 +50,12 @@ class DataValidator:
             
             if not DataValidator._validate_date(data["statement_date"]):
                 return False, "Invalid statement date format"
+            
+            if not DataValidator._validate_currency(data["opening_balance"]):
+                return False, "Invalid opening balance format"
+            
+            if not DataValidator._validate_currency(data["closing_balance"]):
+                return False, "Invalid closing balance format"
             
             return True, "Valid bank statement data"
         

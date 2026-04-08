@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 class ExtractionPipeline:
     
     def __init__(self, ocr_engine: str = None):
-        # Read OCR engine from config if not provided
         if ocr_engine is None:
             ocr_engine = self._load_ocr_engine_from_config()
         
@@ -68,11 +67,9 @@ class ExtractionPipeline:
                 text = self.text_cleaner.clean_text(text)
                 total_text_length += len(text)
                 
-                # Log extracted text for debugging
                 print(f"\n=== EXTRACTED TEXT (first 500 chars) ===\n{text[:500]}\n===")
                 logger.info(f"Extracted text length: {len(text)}")
                 
-                # Save full text to file for debugging
                 try:
                     debug_text_path = Path(self.file_manager.get_processed_dir(upload_id)) / f"extracted_text_page_{doc_num}.txt"
                     with open(debug_text_path, 'w', encoding='utf-8') as f:

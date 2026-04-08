@@ -12,7 +12,6 @@ class DocumentClassifier:
         "nric", "id number", "employee id", "department",
         "pay period", "payment date", "total deduction",
         "employer", "employee name", "designation",
-        # Malay keywords
         "gaji", "gaji pokok", "gaji bersih", "cukai pendapatan",
         "kwsp", "perkeso", "takaful", "potongan", "pendapatan",
         "jumlah", "bulan", "nama", "no k/p", "no gaji"

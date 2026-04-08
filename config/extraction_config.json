@@ -11,18 +11,18 @@
       "required": true
     },
     "gross_income": {
-      "keywords": ["gross", "gross income", "gross salary", "total income", "gaji pokok", "gaji kasar"],
-      "pattern": null,
+      "keywords": ["gross", "gross income", "gross salary", "total income"],
+      "pattern": "[\\d,]+\\.\\d{2}",
       "required": true
     },
     "net_income": {
-      "keywords": ["net", "net income", "take home", "net salary", "gaji bersih"],
-      "pattern": null,
+      "keywords": ["net", "net income", "take home", "net salary"],
+      "pattern": "[\\d,]+\\.\\d{2}",
       "required": true
     },
     "total_deduction": {
-      "keywords": ["deduction", "total deduction", "total deductions", "jumlah potongan"],
-      "pattern": null,
+      "keywords": ["deduction", "total deduction", "total deductions"],
+      "pattern": "[\\d,]+\\.\\d{2}",
       "required": true
     },
     "month_year": {
@@ -45,6 +45,16 @@
     "statement_date": {
       "keywords": ["date", "statement date", "statement period"],
       "pattern": "\\d{2}/\\d{2}/\\d{4}",
+      "required": true
+    },
+    "opening_balance": {
+      "keywords": ["opening", "opening balance", "beginning balance"],
+      "pattern": "[\\d,]+\\.\\d{2}",
+      "required": true
+    },
+    "closing_balance": {
+      "keywords": ["closing", "closing balance", "ending balance", "balance"],
+      "pattern": "[\\d,]+\\.\\d{2}",
       "required": true
     }
   }

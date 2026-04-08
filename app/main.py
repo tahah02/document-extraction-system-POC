@@ -1,6 +1,8 @@
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 os.environ['PADDLE_DEVICE'] = 'cpu'
 os.environ['PADDLE_DISABLE_ONEDNN'] = '1'
 os.environ['PADDLE_DISABLE_FAST_MATH'] = '1'

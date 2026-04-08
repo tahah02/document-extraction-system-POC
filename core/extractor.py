@@ -3,6 +3,7 @@ import logging
 import re
 from typing import Dict, Any, Optional
 from pathlib import Path
+from core.utils import CurrencyFormatter
 
 logger = logging.getLogger(__name__)
 
@@ -80,35 +81,68 @@ class FieldExtractor:
             if match:
                 extracted["total_deduction"] = match.group(1).strip().replace(" ", "")
         
+        extracted["gross_income"] = CurrencyFormatter.clean_currency(extracted["gross_income"])
+        extracted["total_deduction"] = CurrencyFormatter.clean_currency(extracted["total_deduction"])
+        
+        net_income_cleaned = CurrencyFormatter.clean_currency(extracted["net_income"])
+        if net_income_cleaned == "0.00" or not extracted["net_income"]:
+            try:
+                gross = float(extracted["gross_income"])
+                deduction = float(extracted["total_deduction"])
+                calculated_net = gross - deduction
+                extracted["net_income"] = f"{calculated_net:.2f}"
+                logger.info(f"Calculated net_income: {extracted['net_income']} (gross: {gross}, deduction: {deduction})")
+            except (ValueError, TypeError) as e:
+                logger.warning(f"Could not calculate net_income: {str(e)}")
+                extracted["net_income"] = net_income_cleaned
+        else:
+            extracted["net_income"] = net_income_cleaned
+        
         return extracted
     
     def extract_bank_statement_fields(self, text: str) -> Dict[str, Any]:
         extracted = {
             "account_holder_name": self._extract_field(text, "account_holder_name"),
             "account_number": self._extract_field(text, "account_number"),
-            "statement_date": self._extract_field(text, "statement_date")
+            "statement_date": self._extract_field(text, "statement_date"),
+            "opening_balance": None,
+            "closing_balance": None
         }
         
         if not extracted["account_holder_name"]:
-            patterns = [
-                r"Account\s+Holder[:\s]+([A-Za-z\s]+?)(?:\n|Account)",
-                r"Name[:\s]+([A-Za-z\s]+?)(?:\n|Account)",
-                r"^([A-Za-z\s]+?)\s+Account",
-            ]
-            for pattern in patterns:
-                match = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
-                if match:
-                    value = match.group(1).strip()
-                    if len(value) > 2:
-                        extracted["account_holder_name"] = value
+            lines = text.split('\n')
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                
+                if len(line) > 5 and len(line) < 100:
+                    has_capital_words = len(re.findall(r'\b[A-Z][a-z]+\b', line)) >= 2
+                    
+                    if has_capital_words and not re.search(r"CIMB|Statement|Account|Number|Date|Balance|Period|Page|Halaman|Summary|Ringkasan|JALAN|KUALA|LUMPUR|RM|Tarikh|Penyata|Akaun|Simpanan|Transaksi|Butir|Withdrawal|Deposit|GST|Baki|Pengeluaran|Rujukan|Diskripsi", line, re.IGNORECASE):
+                        extracted["account_holder_name"] = line
                         break
         
-        if extracted["account_holder_name"]:
-            name = extracted["account_holder_name"]
-            name = re.sub(r"CIMB\s+BANK|Statement\s+of|Account\s+Holder", "", name, flags=re.IGNORECASE)
-            name = name.strip()
-            if name:
-                extracted["account_holder_name"] = name
+        opening_match = re.search(r"OPENING\s+BALANCE\s+([\d,.\s]+?)(?:\n|$|\d{2}/\d{2}/\d{4})", text, re.IGNORECASE)
+        if opening_match and opening_match.group(1):
+            val = opening_match.group(1).strip().replace(" ", "")
+            if val:
+                extracted["opening_balance"] = val
+        
+        closing_match = re.search(r"(?:CLOSING\s+BALANCE|BAKI\s+PENUTUP)\s+([\d,.\s]+?)(?:\n|$|End\s+of)", text, re.IGNORECASE)
+        if closing_match and closing_match.group(1):
+            val = closing_match.group(1).strip().replace(" ", "")
+            if val:
+                extracted["closing_balance"] = val
+        
+        if not extracted["opening_balance"]:
+            extracted["opening_balance"] = self._extract_field(text, "opening_balance")
+        
+        if not extracted["closing_balance"]:
+            extracted["closing_balance"] = self._extract_field(text, "closing_balance")
+        
+        extracted["opening_balance"] = CurrencyFormatter.clean_currency(extracted["opening_balance"])
+        extracted["closing_balance"] = CurrencyFormatter.clean_currency(extracted["closing_balance"])
         
         return extracted
     
