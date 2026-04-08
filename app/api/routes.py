@@ -5,6 +5,7 @@ import json
 from app.api.schemas import UploadResponse, StatusResponse, ErrorResponse
 from utils.logger import logger
 from core.pipeline import ExtractionPipeline
+from core.language_detector import LanguageDetector
 from utils.file_manager import FileManager
 
 router = APIRouter()
@@ -26,7 +27,13 @@ async def upload_document(file: UploadFile = File(...), background_tasks: Backgr
         if background_tasks:
             background_tasks.add_task(process_document, upload_id, file)
         
-        processing_status[upload_id] = {"status": "processing", "upload_id": upload_id, "message": "Analyzing document..."}
+        processing_status[upload_id] = {
+            "status": "processing",
+            "upload_id": upload_id,
+            "message": "Analyzing document...",
+            "detected_language": None,
+            "language_confidence": 0.0
+        }
         
         return UploadResponse(
             status="processing",
@@ -65,12 +72,24 @@ async def process_document(upload_id: str, file: UploadFile):
         file_path = file_manager.save_upload(upload_id, file_content, file.filename)
         
         result = pipeline.process(upload_id, file_path)
+        
+        extracted_text = ""
+        if result.get("documents") and len(result["documents"]) > 0:
+            extracted_text = result["documents"][0].get("extracted_data", {})
+            if isinstance(extracted_text, dict):
+                extracted_text = " ".join(str(v) for v in extracted_text.values() if v)
+        
+        detected_language, language_confidence = LanguageDetector.detect_language(extracted_text)
+        logger.info(f"Detected language: {detected_language} (confidence: {language_confidence})")
+        
         pipeline.save_result(upload_id, result)
         
         processing_status[upload_id] = {
             "status": "completed",
             "upload_id": upload_id,
             "message": "Processing completed",
+            "detected_language": detected_language,
+            "language_confidence": language_confidence,
             "result": result
         }
         
@@ -81,5 +100,7 @@ async def process_document(upload_id: str, file: UploadFile):
         processing_status[upload_id] = {
             "status": "failed",
             "upload_id": upload_id,
-            "message": f"Processing failed: {str(e)}"
+            "message": f"Processing failed: {str(e)}",
+            "detected_language": None,
+            "language_confidence": 0.0
         }
