@@ -5,14 +5,6 @@ from datetime import datetime
 from datetime import datetime
 
 
-class PayslipData(BaseModel):
-    name: str
-    id_number: str
-    gross_income: str
-    net_income: str
-    total_deduction: str
-    month_year: str
-
 class BankStatementData(BaseModel):
     account_holder_name: str
     account_number: str
@@ -26,7 +18,6 @@ class DocumentExtraction(BaseModel):
     text_length: int
 
 class ExtractionSummary(BaseModel):
-    payslips: int
     bank_statements: int
     other: int
     average_confidence: float

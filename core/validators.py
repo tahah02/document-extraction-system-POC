@@ -12,36 +12,6 @@ logger = logging.getLogger(__name__)
 class DataValidator:
     
     @staticmethod
-    def validate_payslip(data: Dict[str, Any], template: str = None) -> Tuple[bool, str]:
-        try:
-            required_fields = ["name", "id_number", "gross_income", "net_income", "total_deduction", "month_year"]
-            missing_fields = [f for f in required_fields if not data.get(f)]
-            
-            if missing_fields:
-                return False, f"Missing fields: {', '.join(missing_fields)}"
-            
-            if not DataValidator._validate_id_number(data["id_number"], template):
-                return False, "Invalid ID number format"
-            
-            if not DataValidator._validate_currency(data["gross_income"], template):
-                return False, "Invalid gross income format"
-            
-            if not DataValidator._validate_currency(data["net_income"], template):
-                return False, "Invalid net income format"
-            
-            if not DataValidator._validate_currency(data["total_deduction"], template):
-                return False, "Invalid total deduction format"
-            
-            if not DataValidator._validate_month_year(data["month_year"], template):
-                return False, "Invalid month/year format"
-            
-            return True, "Valid payslip data"
-        
-        except Exception as e:
-            logger.error(f"Payslip validation error: {str(e)}")
-            return False, str(e)
-    
-    @staticmethod
     def validate_bank_statement(data: Dict[str, Any], template: str = None) -> Tuple[bool, str]:
         try:
             required_fields = ["account_holder_name", "account_number", "statement_date", "opening_balance", "closing_balance"]

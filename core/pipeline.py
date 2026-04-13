@@ -149,16 +149,8 @@ class ExtractionPipeline:
                 doc_type, type_confidence = self.classifier.classify(text, self.template)
                 logger.info(f"Classified as: {doc_type} (confidence: {type_confidence})")
                 
-                if doc_type == "payslip":
-                    extracted_data = self.extractor.extract_payslip_fields(text, tokens=tokens)
-                    is_valid, validation_msg = DataValidator.validate_payslip(extracted_data, self.template)
-                elif doc_type == "bank_statement":
-                    extracted_data = self.extractor.extract_bank_statement_fields(text, tokens=tokens)
-                    is_valid, validation_msg = DataValidator.validate_bank_statement(extracted_data, self.template)
-                else:
-                    extracted_data = {}
-                    is_valid = False
-                    validation_msg = "Unknown document type"
+                extracted_data = self.extractor.extract_bank_statement_fields(text, tokens=tokens)
+                is_valid, validation_msg = DataValidator.validate_bank_statement(extracted_data, self.template)
                 
                 confidence = self.extractor.calculate_confidence(extracted_data)
                 confidence_scores.append(confidence)
@@ -175,9 +167,8 @@ class ExtractionPipeline:
             
             documents = StatementMerger.merge_bank_statement_pages(documents)
             
-            payslip_count = sum(1 for d in documents if d["document_type"] == "payslip")
             bank_count = sum(1 for d in documents if d["document_type"] == "bank_statement")
-            other_count = len(documents) - payslip_count - bank_count
+            other_count = len(documents) - bank_count
             
             avg_confidence = sum(confidence_scores) / len(confidence_scores) if confidence_scores else 0.0
             
@@ -189,7 +180,6 @@ class ExtractionPipeline:
                 "total_documents": len(documents),
                 "documents": documents,
                 "summary": {
-                    "payslips": payslip_count,
                     "bank_statements": bank_count,
                     "other": other_count,
                     "average_confidence": round(avg_confidence, 2)

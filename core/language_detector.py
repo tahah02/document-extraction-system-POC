@@ -9,17 +9,14 @@ class LanguageDetector:
     LANGUAGE_KEYWORDS = {
         "en": {
             "common": ["the", "and", "is", "to", "of", "in", "for", "that", "with", "a", "on"],
-            "payslip": ["salary", "gross", "net income", "deduction", "employee", "payslip", "basic", "allowance"],
             "bank": ["account", "balance", "transaction", "deposit", "withdrawal", "statement"]
         },
         "ms": {
             "common": ["yang", "dan", "adalah", "untuk", "di", "pada", "dengan", "dari", "ke", "ini"],
-            "payslip": ["gaji", "gaji pokok", "gaji bersih", "potongan", "pendapatan", "nama", "elaun", "kwsp"],
             "bank": ["akaun", "baki", "transaksi", "pengeluaran", "deposit", "penyata", "tarikh"]
         },
         "ar": {
             "common": ["في", "من", "إلى", "هو", "هي", "و", "أن", "على", "عن", "كل"],
-            "payslip": ["راتب", "الراتب", "الخصم", "الدخل", "الموظف", "الإجمالي", "صافي", "بدل"],
             "bank": ["حساب", "الرصيد", "معاملة", "إيداع", "سحب", "كشف", "التاريخ"]
         }
     }
@@ -43,7 +40,6 @@ class LanguageDetector:
         for lang, keywords_dict in LanguageDetector.LANGUAGE_KEYWORDS.items():
             all_keywords = (
                 keywords_dict.get("common", []) +
-                keywords_dict.get("payslip", []) +
                 keywords_dict.get("bank", [])
             )
             
