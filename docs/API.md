@@ -1,221 +1,318 @@
 # API Documentation
 
+**Version**: 1.0.0  
+**Last Updated**: April 13, 2026
+
+---
+
 ## Base URL
 
 ```
-http://localhost:8000/api
-```
-
-## Endpoints
-
-### 1. Health Check
-
-**GET** `/health`
-
-Check if the service is running.
-
-**Response:**
-```json
-{
-  "status": "healthy",
-  "version": "0.1.0"
-}
+http://localhost:8000
 ```
 
 ---
 
-### 2. Upload Document
+## Endpoints
 
-**POST** `/upload`
+### 1. Upload Document
 
-Upload a document for extraction.
+**Endpoint**: `POST /api/upload`
 
-**Request:**
-- Content-Type: `multipart/form-data`
-- Body: `file` (PDF, JPG, PNG, DOCX)
+**Description**: Upload a PDF document for processing
 
-**Response:**
+**Request**:
+```
+Content-Type: multipart/form-data
+
+Parameters:
+- file (required): PDF file to upload
+```
+
+**Response** (200 OK):
 ```json
 {
   "status": "processing",
-  "upload_id": "550e8400-e29b-41d4-a716-446655440000",
+  "upload_id": "f8fdcfa5-658a-40ef-8f8d-bc44d20a274d",
   "message": "File uploaded successfully. Processing started."
 }
 ```
 
-**Example:**
+**Example**:
 ```bash
 curl -X POST "http://localhost:8000/api/upload" \
-  -F "file=@payslip.pdf"
+  -F "file=@bank_statement.pdf"
 ```
 
 ---
 
-### 3. Check Processing Status
+### 2. Get Status
 
-**GET** `/status/{upload_id}`
+**Endpoint**: `GET /api/status/{upload_id}`
 
-Check the status of document processing.
+**Description**: Check processing status of uploaded document
 
-**Parameters:**
-- `upload_id` (path): ID returned from upload endpoint
-
-**Response (Processing):**
+**Response** (200 OK):
 ```json
 {
-  "status": "processing",
-  "upload_id": "550e8400-e29b-41d4-a716-446655440000",
-  "message": "Analyzing document..."
+  "status": "processing|completed|failed",
+  "upload_id": "f8fdcfa5-658a-40ef-8f8d-bc44d20a274d",
+  "message": "Processing in progress...",
+  "detected_language": "en",
+  "language_confidence": 0.95
 }
 ```
 
-**Response (Completed):**
-```json
-{
-  "status": "completed",
-  "upload_id": "550e8400-e29b-41d4-a716-446655440000",
-  "result": {
-    "upload_id": "550e8400-e29b-41d4-a716-446655440000",
-    "file_type": "pdf",
-    "total_documents": 1,
-    "documents": [
-      {
-        "document_number": 1,
-        "document_type": "payslip",
-        "extracted_data": {
-          "name": "SITI HAZIRAH BT MUSTAFA",
-          "id_number": "800408-06-5592",
-          "gross_income": "15898.00",
-          "net_income": "9888.20",
-          "total_deduction": "6009.80",
-          "month_year": "02/2026"
-        },
-        "confidence_score": 0.95,
-        "text_length": 916
-      }
-    ],
-    "summary": {
-      "payslips": 1,
-      "bank_statements": 0,
-      "other": 0,
-      "average_confidence": 0.95
-    },
-    "processing_completed_at": "2026-04-03T08:19:07.168115",
-    "original_file": "raw/550e8400-e29b-41d4-a716-446655440000.pdf",
-    "total_text_length": 920
-  }
-}
-```
-
-**Example:**
+**Example**:
 ```bash
-curl "http://localhost:8000/api/status/550e8400-e29b-41d4-a716-446655440000"
+curl "http://localhost:8000/api/status/f8fdcfa5-658a-40ef-8f8d-bc44d20a274d"
 ```
 
 ---
 
-### 4. Get Extraction Results
+### 3. Get Results
 
-**GET** `/result/{upload_id}`
+**Endpoint**: `GET /api/result/{upload_id}`
 
-Retrieve the complete extraction results.
+**Description**: Retrieve extraction results for completed document
 
-**Parameters:**
-- `upload_id` (path): ID returned from upload endpoint
-
-**Response:**
+**Response** (200 OK):
 ```json
 {
-  "upload_id": "550e8400-e29b-41d4-a716-446655440000",
+  "upload_id": "f8fdcfa5-658a-40ef-8f8d-bc44d20a274d",
   "file_type": "pdf",
   "total_documents": 1,
   "documents": [
     {
       "document_number": 1,
-      "document_type": "payslip",
+      "document_type": "bank_statement",
       "extracted_data": {
-        "name": "SITI HAZIRAH BT MUSTAFA",
-        "id_number": "800408-06-5592",
-        "gross_income": "15898.00",
-        "net_income": "9888.20",
-        "total_deduction": "6009.80",
-        "month_year": "02/2026"
+        "account_holder_name": "ENCIK MUHAMMAD SHAZWAN BIN SHARIFF",
+        "account_number": "09010020435873",
+        "statement_date": "31/07/25",
+        "opening_balance": "142.52",
+        "closing_balance": "122.60",
+        "available_balance": null,
+        "total_debit": "4340.78",
+        "total_credit": "4320.86",
+        "statement_period_from": "31/07/2025",
+        "statement_period_to": "31/07/2025",
+        "detected_bank": "bank_islam",
+        "bank_detection_confidence": 1.0,
+        "page_count": 4,
+        "pages": [1, 2, 3, 4]
       },
-      "confidence_score": 0.95,
-      "text_length": 916
+      "confidence_score": 0.91,
+      "text_length": 8520,
+      "is_merged": true,
+      "merged_from_pages": 4
     }
   ],
   "summary": {
-    "payslips": 1,
-    "bank_statements": 0,
+    "payslips": 0,
+    "bank_statements": 1,
     "other": 0,
-    "average_confidence": 0.95
+    "average_confidence": 0.91
   },
-  "processing_completed_at": "2026-04-03T08:19:07.168115",
-  "original_file": "raw/550e8400-e29b-41d4-a716-446655440000.pdf",
-  "total_text_length": 920
+  "processing_completed_at": "2026-04-13T14:41:27.098735",
+  "original_file": "raw/f8fdcfa5-658a-40ef-8f8d-bc44d20a274d.pdf",
+  "total_text_length": 8520,
+  "config_version": "2.0.0",
+  "template_used": "default"
 }
 ```
+
+**Example**:
+```bash
+curl "http://localhost:8000/api/result/f8fdcfa5-658a-40ef-8f8d-bc44d20a274d"
+```
+
+---
+
+## Response Fields
+
+### Bank Statement Fields
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| account_holder_name | string | Account owner name | "ENCIK MUHAMMAD SHAZWAN BIN SHARIFF" |
+| account_number | string | Bank account number | "09010020435873" |
+| statement_date | string | Statement date (DD/MM/YYYY) | "31/07/25" |
+| opening_balance | string | Opening balance (RM) | "142.52" |
+| closing_balance | string | Closing balance (RM) | "122.60" |
+| available_balance | string/null | Available balance (RM) | "110.16" |
+| total_debit | string/null | Total debit (RM) | "4340.78" |
+| total_credit | string/null | Total credit (RM) | "4320.86" |
+| statement_period_from | string | Period start (DD/MM/YYYY) | "31/07/2025" |
+| statement_period_to | string | Period end (DD/MM/YYYY) | "31/07/2025" |
+| detected_bank | string | Bank type | "bank_islam" |
+| bank_detection_confidence | float | Bank detection confidence (0-1) | 1.0 |
+| page_count | integer | Number of pages | 4 |
+| pages | array | Page numbers | [1, 2, 3, 4] |
+
+### Document Summary
+
+| Field | Type | Description |
+|-------|------|-------------|
+| payslips | integer | Number of payslips extracted |
+| bank_statements | integer | Number of bank statements extracted |
+| other | integer | Number of other documents |
+| average_confidence | float | Average confidence score (0-1) |
+
+---
+
+## Supported Banks
+
+### Bank Islam
+- **Confidence**: 0.91
+- **Features**: Multi-page merging, closing balance calculation
+- **Debit/Credit**: Extracted from summary section
+- **Format**: Account number (11 digits)
+
+### CIMB
+- **Confidence**: 0.82
+- **Features**: Single/multi-page support
+- **Debit/Credit**: N/A (format limitation)
+- **Format**: Account number (11 digits with hyphens)
+
+### BSN
+- **Confidence**: 0.86
+- **Features**: Available balance extraction
+- **Debit/Credit**: Extracted from transactions
+- **Format**: Account number (16 digits)
+
+### Public Bank
+- **Confidence**: 0.66
+- **Features**: Multi-page support
+- **Debit/Credit**: Extracted from transactions
+- **Format**: Account number (10 digits)
 
 ---
 
 ## Error Responses
 
-### 400 Bad Request
-```json
-{
-  "status": "error",
-  "error": "No file provided",
-  "details": null
-}
-```
-
 ### 404 Not Found
 ```json
 {
-  "status": "error",
-  "error": "Upload ID not found",
-  "details": null
+  "detail": "Upload ID not found"
+}
+```
+
+### 202 Accepted (Still Processing)
+```json
+{
+  "detail": "Processing not completed yet"
 }
 ```
 
 ### 500 Internal Server Error
 ```json
 {
-  "status": "error",
-  "error": "Processing failed",
-  "details": "Error message details"
+  "detail": "Processing failed: [error message]"
 }
 ```
 
 ---
 
-## Workflow Example
+## Processing Flow
 
+1. **Upload** → POST /api/upload
+   - Returns upload_id
+   - Processing starts in background
+
+2. **Check Status** → GET /api/status/{upload_id}
+   - Returns current status
+   - Wait until status = "completed"
+
+3. **Get Results** → GET /api/result/{upload_id}
+   - Returns extracted data
+   - Only available when status = "completed"
+
+---
+
+## Example Workflow
+
+### Step 1: Upload Document
 ```bash
-# 1. Upload document
-UPLOAD_ID=$(curl -s -X POST "http://localhost:8000/api/upload" \
-  -F "file=@payslip.pdf" | jq -r '.upload_id')
+curl -X POST "http://localhost:8000/api/upload" \
+  -F "file=@bank_statement.pdf"
 
-echo "Upload ID: $UPLOAD_ID"
+# Response:
+# {
+#   "status": "processing",
+#   "upload_id": "abc123",
+#   "message": "File uploaded successfully. Processing started."
+# }
+```
 
-# 2. Check status (repeat until completed)
-curl "http://localhost:8000/api/status/$UPLOAD_ID"
+### Step 2: Check Status (repeat until completed)
+```bash
+curl "http://localhost:8000/api/status/abc123"
 
-# 3. Get results when completed
-curl "http://localhost:8000/api/result/$UPLOAD_ID"
+# Response:
+# {
+#   "status": "processing",
+#   "upload_id": "abc123",
+#   "message": "Processing in progress..."
+# }
+```
+
+### Step 3: Get Results
+```bash
+curl "http://localhost:8000/api/result/abc123"
+
+# Response: Full extraction results
 ```
 
 ---
 
-## Rate Limiting
+## Confidence Scores
 
-Currently no rate limiting. Implement as needed for production.
+- **0.90+**: Excellent - All fields extracted correctly
+- **0.80-0.89**: Good - Most fields extracted correctly
+- **0.70-0.79**: Fair - Some fields may need verification
+- **0.60-0.69**: Poor - Multiple fields may be incorrect
+- **<0.60**: Very Poor - Significant extraction errors
+
+---
+
+## Rate Limits
+
+- No rate limiting implemented
+- Concurrent requests: Limited by CPU
+- File size limit: 50MB
+- Processing timeout: 300 seconds
+
+---
 
 ## Authentication
 
-Currently no authentication. Implement as needed for production.
+- No authentication required
+- API is open for testing
+
+---
 
 ## CORS
 
-CORS is enabled for all origins by default. Configure in `.env` for production.
+- CORS enabled for all origins
+- Suitable for development/testing
+
+---
+
+## Swagger UI
+
+Access interactive API documentation:
+```
+http://localhost:8000/docs
+```
+
+---
+
+## Postman Collection
+
+Import `postman_collection.json` for pre-configured requests
+
+---
+
+**Version**: 1.0.0  
+**Last Updated**: April 13, 2026

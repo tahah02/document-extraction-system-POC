@@ -22,7 +22,11 @@ This project extracts structured data from PDF documents (Payslips and Bank Stat
   1. Convert PDF to images (`utils/pdf_processor.py`)
   2. Extract text from images using OCR (`core/ocr_engine.py`)
   3. Clean extracted text (`utils/text_cleaner.py`)
-  4. Process each page/document
+  4. Classify document type (`core/document_classifier.py`)
+  5. Extract fields based on classification (`core/extractor.py`)
+  6. Validate extracted data (`core/validators.py`)
+  7. Detect language of extracted text (`core/language_detector.py`)
+  8. Process each page/document
 
 ### 3. Document Classification
 - **File**: `core/document_classifier.py`
@@ -69,23 +73,25 @@ This project extracts structured data from PDF documents (Payslips and Bank Stat
 
 ### ✅ Completed Features
 - PDF upload and processing
-- Text extraction using Tesseract OCR
+- Text extraction using multiple OCR engines (Tesseract, PaddleOCR, EasyOCR)
 - Payslip classification and field extraction
 - Bank Statement classification and field extraction
 - Confidence scoring
 - RESTful API endpoints
 - Postman collection
 - Logging system
-- File management
+- File management (uploads/raw, uploads/processed)
 - Text cleaning and normalization
 - Data validation
+- Language detection with confidence scoring
+- Result persistence to JSON files
+- Error handling with graceful degradation
 
 ### ❌ Not Implemented
 - Database storage (results stored in memory only)
 - Frontend UI (API-only)
-- Batch processing (multiple files)
+- Batch processing (multiple files at once)
 - Advanced validation rules
-- Error handling improvements
 - Rate limiting
 - Authentication/Authorization
 - Email notifications
@@ -122,8 +128,8 @@ python -m app.main
 ```
 
 ### Access API
-- Swagger UI: `http://localhost:8003/docs`
-- API Base: `http://localhost:8003/api`
+- Swagger UI: `http://localhost:8004/docs`
+- API Base: `http://localhost:8004/api`
 
 ### Import Postman Collection
 1. Open Postman

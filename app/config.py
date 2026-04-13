@@ -1,6 +1,9 @@
 from pydantic_settings import BaseSettings
 from typing import List
+from typing import List
 import os
+import os
+
 
 class Settings(BaseSettings):
     
@@ -9,7 +12,7 @@ class Settings(BaseSettings):
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
     
     HOST: str = "0.0.0.0"
-    PORT: int = 8003
+    PORT: int = 8004
     
     CORS_ORIGINS: List[str] = ["*"]
     

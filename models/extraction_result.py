@@ -1,6 +1,9 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any
+from typing import List, Dict, Any
 from datetime import datetime
+from datetime import datetime
+
 
 class DocumentExtraction(BaseModel):
     document_number: int

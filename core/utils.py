@@ -1,5 +1,9 @@
 import re
 import logging
+import logging
+from typing import Optional
+from typing import Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -86,3 +90,73 @@ class CurrencyFormatter:
                 return f"{month:02d}/{year}"
         
         return value
+
+
+def parse_number(text: str) -> Optional[float]:
+    if not text or not isinstance(text, str):
+        return None
+    
+    s = text.strip()
+    
+    s = re.sub(r"[^\d,.\-\s]", "", s)
+    s = s.strip()
+    
+    if not s:
+        return None
+    
+    if '.' in s and ',' in s:
+        s = s.replace(',', '')
+    elif ',' in s and re.search(r",\d{1,2}$", s):
+        s = s.replace(',', '.')
+    elif ',' in s:
+        s = s.replace(',', '')
+    
+    s = s.replace(' ', '')
+    
+    try:
+        return float(s)
+    except ValueError:
+        logger.debug(f"Could not parse number from: {text}")
+        return None
+
+
+def normalize_nric(s: str) -> Optional[str]:
+    if not s or not isinstance(s, str):
+        return None
+    
+    digits = re.sub(r"\D", "", s)
+    
+    if len(digits) != 12:
+        logger.debug(f"NRIC has {len(digits)} digits, expected 12: {s}")
+        return None
+    
+    return f"{digits[:6]}-{digits[6:8]}-{digits[8:]}"
+
+
+def is_percentage_context(text: str, label: str = "") -> bool:
+    if not text:
+        return False
+    
+    text_lower = text.lower()
+    label_lower = label.lower() if label else ""
+    
+    if '%' in text:
+        return True
+    
+    percentage_keywords = ['peratus', 'percentage', 'pct', 'percent', '%']
+    
+    for keyword in percentage_keywords:
+        if keyword in label_lower or keyword in text_lower:
+            return True
+    
+    return False
+
+
+def is_likely_percentage_value(value: float, context: str = "", label: str = "") -> bool:
+    if is_percentage_context(context, label):
+        return True
+    
+    if value < 100 and is_percentage_context(context, label):
+        return True
+    
+    return False

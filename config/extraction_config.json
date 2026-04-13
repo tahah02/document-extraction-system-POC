@@ -1,61 +1,148 @@
 {
   "payslip": {
     "name": {
-      "keywords": ["name", "employee name", "employee"],
+      "keywords": ["name", "nama", "employee name", "nama pegawai", "employee"],
       "pattern": null,
-      "required": true
+      "required": true,
+      "fallback_patterns": [
+        "(?:Name|Nama|Employee Name|Nama Pegawai)[:\\s]*([A-Za-z][A-Za-z\\s]+)",
+        "^([A-Z][A-Z\\s]{10,})$"
+      ]
     },
     "id_number": {
-      "keywords": ["id", "nric", "employee id", "identification"],
+      "keywords": ["id", "nric", "no. k/p", "no k/p", "employee id", "identification"],
       "pattern": "\\d{6}-\\d{2}-\\d{4}",
-      "required": true
+      "required": true,
+      "fallback_patterns": [
+        "(?:No\\.?\\s*K/P|NRIC|ID Number|Employee ID)[:\\s]*(\\d{6}-\\d{2}-\\d{4})",
+        "(\\d{6}-\\d{2}-\\d{4})"
+      ]
     },
     "gross_income": {
-      "keywords": ["gross", "gross income", "gross salary", "total income"],
+      "keywords": ["gross", "gross income", "gross salary", "total income", "jumlah pendapatan", "gaji pokok", "gaji kasar"],
       "pattern": "[\\d,]+\\.\\d{2}",
-      "required": true
+      "required": true,
+      "fallback_patterns": [
+        "(?:Gross Income|Jumlah Pendapatan|Gaji Pokok|Gaji Kasar|Total Income)[:\\s]*(?:RM)?[:\\s]*([\\d,]+\\.?\\d*)"
+      ],
+      "exclusion_keywords": ["peratus", "bercukai", "rate", "kadar", "%", "percent"]
     },
     "net_income": {
-      "keywords": ["net", "net income", "take home", "net salary"],
+      "keywords": ["net", "net income", "take home", "net salary", "gaji bersih"],
       "pattern": "[\\d,]+\\.\\d{2}",
-      "required": true
+      "required": true,
+      "fallback_patterns": [
+        "(?:Net Income|Gaji Bersih|Take Home|Net Salary)[:\\s]*(?:RM)?[:\\s]*([\\d,]+\\.?\\d*)"
+      ],
+      "exclusion_keywords": ["peratus", "bercukai", "rate", "kadar", "%", "percent"]
     },
     "total_deduction": {
-      "keywords": ["deduction", "total deduction", "total deductions"],
+      "keywords": ["deduction", "total deduction", "total deductions", "jumlah potongan"],
       "pattern": "[\\d,]+\\.\\d{2}",
-      "required": true
+      "required": true,
+      "fallback_patterns": [
+        "(?:Total Deduction|Jumlah Potongan|Total Deductions|Deduction)[:\\s]*(?:RM)?[:\\s]*([\\d,]+\\.?\\d*)"
+      ],
+      "deduction_item_patterns": [
+        "(?:EPF|KWSP|SOCSO|PERKESO|PCB|Zakat|Insurance|Insurans)[:\\s]*(?:RM)?[:\\s]*([\\d,]+\\.?\\d*)"
+      ]
     },
     "month_year": {
-      "keywords": ["month", "period", "date", "month/year"],
+      "keywords": ["month", "period", "date", "month/year", "bulan"],
       "pattern": "\\d{2}/\\d{4}",
-      "required": true
+      "required": true,
+      "fallback_patterns": [
+        "(?:Month|Bulan|Period|Month/Year)[:\\s]*(\\d{2}/\\d{4})",
+        "(\\d{2}/\\d{4})"
+      ]
     }
   },
   "bank_statement": {
     "account_holder_name": {
-      "keywords": ["account holder", "name", "account name"],
+      "keywords": ["ENCIK", "PUAN", "account holder", "name", "nama", "account name"],
       "pattern": null,
-      "required": true
+      "required": true,
+      "fallback_patterns": [
+        "(?:ENCIK|PUAN|Name|Nama|Account Holder|Pemegang Akaun|Account Name)[:\\s]*([A-Z][A-Z\\s]+)",
+        "^([A-Z][A-Z\\s]{10,})$"
+      ],
+      "exclusion_patterns": [
+        "Statement", "Penyata", "Account", "Akaun", "Bank", "Address", "Alamat", "Date", "Tarikh", "BRANCH", "CAWANGAN"
+      ]
     },
     "account_number": {
-      "keywords": ["account", "account number", "account no"],
-      "pattern": "\\d{2}-\\d{7}-\\d",
-      "required": true
+      "keywords": ["ACCOUNT NO", "NO AKAUN", "account number", "account no", "akaun", "no akaun", "ACC NO", "A/C NO"],
+      "pattern": "\\d{10,}",
+      "required": true,
+      "fallback_patterns": [
+        "(?:ACCOUNT NO|Account Number|NO AKAUN|No Akaun|Akaun|ACC NO|A/C NO)[:\\s]*(?:NO)?[:\\s]*(\\d{2,}-\\d{7,}-\\d{1,})",
+        "(?:ACCOUNT NO|Account Number|NO AKAUN|No Akaun|Akaun|ACC NO|A/C NO)[:\\s]*(?:NO)?[:\\s]*(\\d{10,})",
+        "(?:A/C|ACC)[:\\s]*(\\d{10,})",
+        "\\b(\\d{11,14})\\b"
+      ]
     },
     "statement_date": {
-      "keywords": ["date", "statement date", "statement period"],
-      "pattern": "\\d{2}/\\d{2}/\\d{4}",
-      "required": true
+      "keywords": ["STATEMENT DATE", "TARIKH PENYATA", "date", "statement date", "tarikh penyata", "tarikh", "period"],
+      "pattern": "\\d{2}/\\d{2}/\\d{2,4}",
+      "required": true,
+      "fallback_patterns": [
+        "(?:STATEMENT DATE|Statement Date|Date|Tarikh|TARIKH PENYATA|Tarikh Penyata|Statement Date|Period)[:\\s]*(\\d{2}/\\d{2}/\\d{2,4})",
+        "(?:From|Dari)[:\\s]*(\\d{2}/\\d{2}/\\d{2,4})",
+        "\\b(\\d{2}/\\d{2}/\\d{2,4})\\b"
+      ]
     },
     "opening_balance": {
-      "keywords": ["opening", "opening balance", "beginning balance"],
+      "keywords": ["opening", "opening balance", "beginning balance", "baki awal", "BAKI AWAL", "baki hadapan", "BAKI HADAPAN", "BAL B/F", "BAKI B/F"],
       "pattern": "[\\d,]+\\.\\d{2}",
-      "required": true
+      "required": true,
+      "fallback_patterns": [
+        "(?:Opening Balance|OPENING BALANCE|Baki Awal|BAKI AWAL|Baki Hadapan|BAKI HADAPAN|Beginning Balance|Baki Permulaan|Balance B/F|BAL B/F|BAKI B/F)[:\\s]*(?:RM)?[:\\s]*([\\d,]+\\.?\\d*)"
+      ],
+      "exclusion_keywords": ["peratus", "rate", "kadar", "%", "percent"]
     },
     "closing_balance": {
-      "keywords": ["closing", "closing balance", "ending balance", "balance"],
+      "keywords": ["closing", "closing balance", "ending balance", "balance", "baki akhir", "baki penutup", "BAKI AKHIR", "BAKI PENUTUP", "BALANCE", "BAL C/F", "BAKI C/F"],
       "pattern": "[\\d,]+\\.\\d{2}",
-      "required": true
+      "required": true,
+      "fallback_patterns": [
+        "(?:Closing Balance|CLOSING BALANCE|Baki Akhir|BAKI AKHIR|Baki Penutup|BAKI PENUTUP|Ending Balance|Balance|Baki Penutup|Balance C/F|BAL C/F|BAKI C/F)[:\\s]*(?:RM)?[:\\s]*([\\d,]+\\.?\\d*)",
+        "(?:Current Balance|Baki Semasa|CURRENT BALANCE|Baki Terkini)[:\\s]*(?:RM)?[:\\s]*([\\d,]+\\.?\\d*)"
+      ],
+      "exclusion_keywords": ["peratus", "rate", "kadar", "%", "percent", "available", "tersedia"]
+    },
+    "total_debit": {
+      "keywords": ["total debit", "total debits", "jumlah debit", "TOTAL DEBIT", "JUMLAH DEBIT", "debit"],
+      "pattern": "[\\d,]+\\.\\d{2}",
+      "required": false,
+      "fallback_patterns": [
+        "(?:Total Debit|TOTAL DEBIT|Jumlah Debit|JUMLAH DEBIT)[:\\s]*(?:RM)?[:\\s]*([\\d,]+\\.?\\d*)",
+        "(?:Total Withdrawal|TOTAL WITHDRAWAL|Jumlah Pengeluaran|JUMLAH PENGELUARAN)[:\\s]*(?:RM)?[:\\s]*([\\d,]+\\.?\\d*)"
+      ]
+    },
+    "total_credit": {
+      "keywords": ["total credit", "total credits", "jumlah kredit", "TOTAL CREDIT", "JUMLAH KREDIT", "credit"],
+      "pattern": "[\\d,]+\\.\\d{2}",
+      "required": false,
+      "fallback_patterns": [
+        "(?:Total Credit|TOTAL CREDIT|Jumlah Kredit|JUMLAH KREDIT)[:\\s]*(?:RM)?[:\\s]*([\\d,]+\\.?\\d*)",
+        "(?:Total Deposit|TOTAL DEPOSIT|Jumlah Deposit|JUMLAH DEPOSIT)[:\\s]*(?:RM)?[:\\s]*([\\d,]+\\.?\\d*)"
+      ]
+    },
+    "statement_period_from": {
+      "keywords": ["from", "dari", "period from", "statement from", "tempoh dari"],
+      "pattern": "\\d{2}/\\d{2}/\\d{2,4}",
+      "required": false,
+      "fallback_patterns": [
+        "(?:From|Dari|Period From|Tempoh Dari)[:\\s]*(\\d{2}/\\d{2}/\\d{2,4})"
+      ]
+    },
+    "statement_period_to": {
+      "keywords": ["to", "hingga", "period to", "statement to", "tempoh hingga", "sehingga"],
+      "pattern": "\\d{2}/\\d{2}/\\d{2,4}",
+      "required": false,
+      "fallback_patterns": [
+        "(?:To|Hingga|Period To|Tempoh Hingga|Sehingga)[:\\s]*(\\d{2}/\\d{2}/\\d{2,4})"
+      ]
     }
   }
 }

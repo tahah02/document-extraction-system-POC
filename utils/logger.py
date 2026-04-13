@@ -1,6 +1,9 @@
 import logging
 import logging.handlers
+import logging.handlers
 from pathlib import Path
+from pathlib import Path
+
 
 def setup_logger(name: str, log_file: str = "output/logs/app.log") -> logging.Logger:
     

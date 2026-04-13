@@ -2,7 +2,7 @@
 
 **Version**: 0.1.0  
 **Status**: Production Ready  
-**Last Updated**: April 6, 2026
+**Last Updated**: April 13, 2026
 
 ---
 
@@ -14,9 +14,11 @@ A FastAPI-based document extraction system that processes PDF files to extract s
 - Multi-page PDF processing
 - Automatic document type classification (Payslip/Bank Statement)
 - Field extraction with confidence scoring
+- Automatic language detection
 - Async background processing
 - RESTful API with Swagger documentation
 - Support for 3 OCR engines (PaddleOCR, EasyOCR, Tesseract)
+- File persistence and result storage
 
 ---
 
@@ -278,8 +280,11 @@ PADDLE_DISABLE_FAST_MATH=1
 - Swagger documentation
 - Postman collection
 - Comprehensive logging
-- File management
+- File management (uploads/raw, uploads/processed)
 - Text cleaning & normalization
+- Language detection with confidence scoring
+- Result persistence to JSON files
+- Error handling with graceful degradation
 
 ### Not Implemented
 - Database storage (in-memory only)
@@ -315,8 +320,8 @@ python -m app.main
 ```
 
 ### 4. Access API
-- Swagger UI: http://localhost:8003/docs
-- API Base: http://localhost:8003/api
+- Swagger UI: http://localhost:8004/docs
+- API Base: http://localhost:8004/api
 
 ### 5. Test with Postman
 Import `postman_collection.json` in Postman
@@ -326,7 +331,7 @@ Import `postman_collection.json` in Postman
 ## Testing
 
 ### Using Swagger UI
-1. Go to http://localhost:8003/docs
+1. Go to http://localhost:8004/docs
 2. Click "Try it out" on POST /api/upload
 3. Select a PDF file
 4. Execute
@@ -364,9 +369,11 @@ Import `postman_collection.json` in Postman
     "other": 0,
     "average_confidence": 0.95
   },
-  "processing_completed_at": "2026-04-06T13:40:16.947454",
+  "processing_completed_at": "2026-04-13T13:40:16.947454",
   "original_file": "raw/615ce6fb-0593-420d-b133-20262528ad7c.pdf",
-  "total_text_length": 2055
+  "total_text_length": 2055,
+  "detected_language": "en",
+  "language_confidence": 0.98
 }
 ```
 
@@ -429,10 +436,11 @@ For issues or questions:
 1. Check docs/ folder for detailed documentation
 2. Review logs in output/logs/app.log
 3. Test with Postman collection
-4. Check Swagger UI at http://localhost:8003/docs
+4. Check Swagger UI at http://localhost:8004/docs
 
 ---
 
 **System Status**: Production Ready
-**Last Tested**: April 6, 2026
+**Last Tested**: April 13, 2026
 **Confidence**: 95%+
+**Port**: 8004

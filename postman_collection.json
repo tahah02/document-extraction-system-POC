@@ -21,10 +21,10 @@
           ]
         },
         "url": {
-          "raw": "http://localhost:8003/api/upload",
+          "raw": "http://localhost:8004/api/upload",
           "protocol": "http",
           "host": ["localhost"],
-          "port": "8003",
+          "port": "8004",
           "path": ["api", "upload"]
         }
       }
@@ -35,10 +35,10 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:8003/api/status/{{upload_id}}",
+          "raw": "http://localhost:8004/api/status/{{upload_id}}",
           "protocol": "http",
           "host": ["localhost"],
-          "port": "8003",
+          "port": "8004",
           "path": ["api", "status", "{{upload_id}}"]
         }
       }
@@ -49,10 +49,10 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:8003/api/result/{{upload_id}}",
+          "raw": "http://localhost:8004/api/result/{{upload_id}}",
           "protocol": "http",
           "host": ["localhost"],
-          "port": "8003",
+          "port": "8004",
           "path": ["api", "result", "{{upload_id}}"]
         }
       }
@@ -63,10 +63,10 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:8003/health",
+          "raw": "http://localhost:8004/health",
           "protocol": "http",
           "host": ["localhost"],
-          "port": "8003",
+          "port": "8004",
           "path": ["health"]
         }
       }
