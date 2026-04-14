@@ -1,18 +1,18 @@
-# Document Extraction System - Complete Guide
+# Document Extraction System - Bank Statement Extraction
 
-**Version**: 1.0.0  
-**Status**: Production Ready  
-**Last Updated**: April 13, 2026
+**Version**: 2.0.0  
+**Status**: Production Ready (Bank Statements Only)  
+**Last Updated**: April 14, 2026
 
 ---
 
 ## Overview
 
-A FastAPI-based system for extracting structured data from PDF documents (Payslips and Bank Statements) using OCR and intelligent pattern matching.
+A FastAPI-based system for extracting structured data from bank statement PDF documents using OCR and intelligent pattern matching.
 
 **Key Capabilities:**
 - Multi-page PDF processing with intelligent merging
-- Automatic document classification (Payslip/Bank Statement)
+- Automatic bank statement classification
 - Field extraction with confidence scoring
 - Async background processing
 - Ensemble OCR (PaddleOCR, EasyOCR, Tesseract) with majority voting
@@ -36,8 +36,9 @@ python -m uvicorn app.main:app --reload
 ```
 
 ### 3. Access API
-- Swagger UI: http://localhost:8000/docs
-- API Base: http://localhost:8000
+- Swagger UI: http://localhost:8004/docs
+- API Base: http://localhost:8004
+- Health Check: http://localhost:8004/health
 
 ---
 
@@ -162,16 +163,40 @@ Response:
     }
   ],
   "summary": {
-    "payslips": 0,
     "bank_statements": 1,
     "other": 0,
     "average_confidence": 0.91
   },
-  "processing_completed_at": "2026-04-13T14:41:27.098735",
+  "processing_completed_at": "2026-04-14T14:41:27.098735",
   "original_file": "raw/uuid.pdf",
   "total_text_length": 8520,
   "config_version": "2.0.0",
   "template_used": "default"
+}
+```
+
+### Check Status
+```
+GET /api/status/{upload_id}
+
+Response:
+{
+  "status": "processing|completed|failed",
+  "upload_id": "uuid",
+  "message": "Status message",
+  "detected_language": "en",
+  "language_confidence": 0.98
+}
+```
+
+### Health Check
+```
+GET /health
+
+Response:
+{
+  "status": "healthy",
+  "version": "2.0.0"
 }
 ```
 
@@ -200,8 +225,7 @@ Response:
    - Tesseract (fallback)
    - Majority voting applied
 
-6. Document classified
-   Payslip or Bank Statement
+6. Document classified as bank_statement
 
 7. Bank detected
    Bank Islam, CIMB, BSN, Public Bank
@@ -274,18 +298,21 @@ document-extraction-poc/
 │   ├── ensemble_ocr.py    Ensemble voting
 │   ├── ocr_engine.py      OCR implementations
 │   ├── image_preprocessor.py  Image preprocessing
-│   ├── document_classifier.py
+│   ├── document_classifier.py  Bank statement detection
 │   ├── extractor.py       Field extraction
 │   ├── bank_detector.py   Bank detection
 │   ├── statement_merger.py Multi-page merging
-│   └── validators.py      Validation
+│   ├── validators.py      Validation
+│   ├── language_detector.py Language detection
+│   └── [other utilities]
 ├── models/                Data Models
+│   ├── bank_statement.py  Bank statement model
+│   └── extraction_result.py Result wrapper
 ├── utils/                 Utilities
 ├── config/                Configuration
 ├── docs/                  Documentation
 ├── uploads/               File Storage
 ├── output/                Results
-├── scripts/               Utility scripts
 ├── .env                   Environment
 ├── requirements.txt       Dependencies
 └── postman_collection.json API Tests
@@ -300,7 +327,7 @@ document-extraction-poc/
 - Multi-page document handling
 - Ensemble OCR with voting
 - Advanced image preprocessing
-- Document classification
+- Bank statement classification
 - Bank detection
 - Field extraction
 - Multi-page merging
@@ -334,8 +361,33 @@ document-extraction-poc/
 | API.md | API documentation |
 | SETUP.md | Setup instructions |
 | ARCHITECTURE.md | System architecture |
-| SMART_PIPELINE_GUIDE.md | Pipeline guide |
+| BANK_STATEMENT_LOGIC_GUIDE.md | Bank statement extraction logic |
 | OCR_IMPROVEMENTS.md | OCR improvements |
+| CURRENT_STATE.md | Current project state |
+
+---
+
+## Configuration
+
+### OCR Engine Selection
+Edit `config/ocr_config.json`:
+```json
+{
+  "engine": "paddleocr",
+  "language": "en",
+  "paddleocr": {
+    "use_gpu": false
+  }
+}
+```
+
+### Environment Variables
+`.env` file:
+```
+PADDLE_DEVICE=cpu
+PADDLE_DISABLE_ONEDNN=1
+PADDLE_DISABLE_FAST_MATH=1
+```
 
 ---
 
@@ -344,11 +396,11 @@ document-extraction-poc/
 - Check docs/ folder for detailed documentation
 - Review logs in output/logs/
 - Test with Postman collection
-- Access Swagger UI at http://localhost:8000/docs
+- Access Swagger UI at http://localhost:8004/docs
 
 ---
 
-**Status**: Production Ready  
-**Last Updated**: April 13, 2026  
-**Version**: 1.0.0  
+**Status**: Production Ready (Bank Statements Only)  
+**Last Updated**: April 14, 2026  
+**Version**: 2.0.0  
 **Average Confidence**: 0.82
