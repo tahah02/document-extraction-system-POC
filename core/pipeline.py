@@ -1,29 +1,18 @@
 import logging
-from typing import Dict, Any, List, Optional
+import json
 from typing import Dict, Any, List, Optional
 from datetime import datetime
-from datetime import datetime
-import json
-import json
 from pathlib import Path
-from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from core.ocr_engine import get_ocr_engine
 from core.document_classifier import DocumentClassifier
-from core.document_classifier import DocumentClassifier
-from core.extractor import FieldExtractor
 from core.extractor import FieldExtractor
 from core.validators import DataValidator
-from core.validators import DataValidator
-from core.config import get_config
 from core.config import get_config
 from core.statement_merger import StatementMerger
-from core.statement_merger import StatementMerger
-from utils.pdf_processor import PDFProcessor
 from utils.pdf_processor import PDFProcessor
 from utils.text_cleaner import TextCleaner
-from utils.text_cleaner import TextCleaner
-from utils.file_manager import FileManager
 from utils.file_manager import FileManager
 
 
@@ -91,6 +80,59 @@ class ExtractionPipeline:
             logger.error(f"Error loading OCR config: {str(e)}, using default: paddleocr")
             return "paddleocr"
     
+    def _process_single_page(self, doc_num: int, image_path: str, upload_id: str) -> Dict[str, Any]:
+        logger.info(f"Processing page {doc_num}")
+        
+        if self.use_preprocessing:
+            preprocessed_path, preprocess_metadata = self.preprocessor.preprocess(
+                image_path, 
+                save_debug=True, 
+                upload_id=upload_id
+            )
+            logger.info(f"Preprocessing applied: {preprocess_metadata.get('steps_applied', [])}")
+            
+            text, tokens = self.ensemble_ocr.extract_text_with_tokens(
+                preprocessed_path,
+                page=doc_num-1,
+                save_debug=True,
+                upload_id=upload_id
+            )
+            logger.info(f"Extracted {len(tokens)} tokens using ensemble OCR")
+        else:
+            tokens = self.ocr_engine.extract_tokens(image_path, page=doc_num-1)
+            logger.info(f"Extracted {len(tokens)} tokens from page {doc_num}")
+            text = self.ocr_engine.extract_text(image_path)
+        
+        text = self.text_cleaner.clean_text(text)
+        
+        print(f"\n=== EXTRACTED TEXT (first 500 chars) ===\n{text[:500]}\n===")
+        logger.info(f"Extracted text length: {len(text)}")
+        
+        try:
+            debug_text_path = Path(self.file_manager.get_processed_dir(upload_id)) / f"extracted_text_page_{doc_num}.txt"
+            with open(debug_text_path, 'w', encoding='utf-8') as f:
+                f.write(text)
+            logger.info(f"Saved extracted text to {debug_text_path}")
+        except Exception as e:
+            logger.warning(f"Could not save debug text: {str(e)}")
+        
+        doc_type, type_confidence = self.classifier.classify(text, self.template)
+        logger.info(f"Classified as: {doc_type} (confidence: {type_confidence})")
+        
+        extracted_data = self.extractor.extract_bank_statement_fields(text, tokens=tokens)
+        is_valid, validation_msg = DataValidator.validate_bank_statement(extracted_data, self.template)
+        
+        confidence = self.extractor.calculate_confidence(extracted_data)
+        logger.info(f"Extraction confidence: {confidence}")
+        
+        return {
+            "document_number": doc_num,
+            "document_type": doc_type,
+            "extracted_data": extracted_data,
+            "confidence_score": confidence,
+            "text_length": len(text)
+        }
+    
     def process(self, upload_id: str, file_path: str) -> Dict[str, Any]:
         try:
             logger.info(f"Starting processing for {upload_id}")
@@ -108,62 +150,28 @@ class ExtractionPipeline:
             total_text_length = 0
             confidence_scores = []
             
-            for doc_num, image_path in enumerate(images, 1):
-                logger.info(f"Processing page {doc_num}")
+            max_workers = min(4, len(images))
+            logger.info(f"Starting parallel processing with {max_workers} workers")
+            
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_page = {
+                    executor.submit(self._process_single_page, doc_num, image_path, upload_id): doc_num
+                    for doc_num, image_path in enumerate(images, 1)
+                }
                 
-                if self.use_preprocessing:
-                    preprocessed_path, preprocess_metadata = self.preprocessor.preprocess(
-                        image_path, 
-                        save_debug=True, 
-                        upload_id=upload_id
-                    )
-                    logger.info(f"Preprocessing applied: {preprocess_metadata.get('steps_applied', [])}")
-                    
-                    text, tokens = self.ensemble_ocr.extract_text_with_tokens(
-                        preprocessed_path,
-                        page=doc_num-1,
-                        save_debug=True,
-                        upload_id=upload_id
-                    )
-                    logger.info(f"Extracted {len(tokens)} tokens using ensemble OCR")
-                else:
-                    tokens = self.ocr_engine.extract_tokens(image_path, page=doc_num-1)
-                    logger.info(f"Extracted {len(tokens)} tokens from page {doc_num}")
-                    
-                    text = self.ocr_engine.extract_text(image_path)
-                
-                text = self.text_cleaner.clean_text(text)
-                total_text_length += len(text)
-                
-                print(f"\n=== EXTRACTED TEXT (first 500 chars) ===\n{text[:500]}\n===")
-                logger.info(f"Extracted text length: {len(text)}")
-                
-                try:
-                    debug_text_path = Path(self.file_manager.get_processed_dir(upload_id)) / f"extracted_text_page_{doc_num}.txt"
-                    with open(debug_text_path, 'w', encoding='utf-8') as f:
-                        f.write(text)
-                    logger.info(f"Saved extracted text to {debug_text_path}")
-                except Exception as e:
-                    logger.warning(f"Could not save debug text: {str(e)}")
-                
-                doc_type, type_confidence = self.classifier.classify(text, self.template)
-                logger.info(f"Classified as: {doc_type} (confidence: {type_confidence})")
-                
-                extracted_data = self.extractor.extract_bank_statement_fields(text, tokens=tokens)
-                is_valid, validation_msg = DataValidator.validate_bank_statement(extracted_data, self.template)
-                
-                confidence = self.extractor.calculate_confidence(extracted_data)
-                confidence_scores.append(confidence)
-                
-                logger.info(f"Extraction confidence: {confidence}")
-                
-                documents.append({
-                    "document_number": doc_num,
-                    "document_type": doc_type,
-                    "extracted_data": extracted_data,
-                    "confidence_score": confidence,
-                    "text_length": len(text)
-                })
+                for future in as_completed(future_to_page):
+                    doc_num = future_to_page[future]
+                    try:
+                        result = future.result()
+                        documents.append(result)
+                        confidence_scores.append(result["confidence_score"])
+                        total_text_length += result["text_length"]
+                        logger.info(f"Completed page {doc_num}")
+                    except Exception as e:
+                        logger.error(f"Page {doc_num} failed: {str(e)}")
+                        raise
+            
+            documents.sort(key=lambda x: x["document_number"])
             
             documents = StatementMerger.merge_bank_statement_pages(documents)
             

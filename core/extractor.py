@@ -304,6 +304,26 @@ class FieldExtractor:
         
         return None
     
+    def _clean_account_holder_name(self, name: str) -> str:
+        if not name:
+            return name
+        
+        noise_words = [
+            'PENYATA AKAUN',
+            'STATEMENT OF ACCOUNT',
+            'TARIKH',
+            'NO.AKAUN',
+            'NO AKAUN',
+            'ACCOUNT NO',
+            'NOMBOR AKAUN'
+        ]
+        
+        cleaned = name
+        for noise in noise_words:
+            cleaned = cleaned.replace(noise, '')
+        
+        return ' '.join(cleaned.strip().split())
+    
     def _extract_account_holder(self, text: str, bank_type: str, config: dict) -> Optional[str]:
         field_config = config.get('account_holder_name', {})
         pattern = field_config.get('pattern')
@@ -313,60 +333,54 @@ class FieldExtractor:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 name = match.group(1) if match.lastindex and match.lastindex >= 1 else match.group(0)
-                cleaned_name = ' '.join(name.upper().split())
+                cleaned_name = self._clean_account_holder_name(' '.join(name.upper().split()))
                 logger.info(f"Extracted account holder via config pattern: {cleaned_name}")
                 return cleaned_name
         
         # Bank-specific extraction logic
         if bank_type == 'public_islamic':
-            # Pattern 1: Name before 3-digit code and account number
             match = re.search(r'((?:MOHAMAD|ENCIK|PUAN|CIKGU|TN|TUAN|DATO)\s+[A-Z\s]+?(?:BIN|BINTI|ANAK)?\s+[A-Z\s]+?)(?=\s+\d{3}\s+\d{10})', text, re.IGNORECASE)
             if match:
-                cleaned_name = ' '.join(match.group(1).upper().split())
+                cleaned_name = self._clean_account_holder_name(' '.join(match.group(1).upper().split()))
                 logger.info(f"Extracted Public Islamic account holder: {cleaned_name}")
                 return cleaned_name
             
-            # Pattern 2: Name before "PENYATA AKAUN"
             match = re.search(r'((?:MOHAMAD|ENCIK|PUAN|CIKGU)\s+[A-Z\s]+?(?:BIN|BINTI|ANAK)\s+[A-Z\s]+?)(?=\s+(?:PENYATA AKAUN|STATEMENT OF ACCOUNT))', text, re.IGNORECASE)
             if match:
-                cleaned_name = ' '.join(match.group(1).upper().split())
+                cleaned_name = self._clean_account_holder_name(' '.join(match.group(1).upper().split()))
                 logger.info(f"Extracted Public Islamic account holder (alt): {cleaned_name}")
                 return cleaned_name
         
         elif bank_type == 'cimb':
-            # CIMB: Name before address
             match = re.search(r'([A-Z][A-Za-z]+\s+[A-Z][A-Za-z]+\s+(?:BINTI|BIN)\s+[A-Z][A-Za-z]+)(?=\s+\d+,?\s+(?:JALAN|LOT|NO\.))', text, re.IGNORECASE)
             if match:
-                cleaned_name = ' '.join(match.group(1).upper().split())
+                cleaned_name = self._clean_account_holder_name(' '.join(match.group(1).upper().split()))
                 logger.info(f"Extracted CIMB account holder: {cleaned_name}")
                 return cleaned_name
         
         elif bank_type == 'bsn':
-            # BSN: Name before "No.Akaun"
             match = re.search(r'([A-Z][A-Z\s]+?(?:BIN|BINTI|ANAK)\s+[A-Z\s]+?)(?=\s+No\.Akaun)', text, re.IGNORECASE)
             if match:
-                cleaned_name = ' '.join(match.group(1).upper().split())
+                cleaned_name = self._clean_account_holder_name(' '.join(match.group(1).upper().split()))
                 logger.info(f"Extracted BSN account holder: {cleaned_name}")
                 return cleaned_name
         
         elif bank_type == 'bank_islam':
-            # Bank Islam: Name before TARIKH
             match = re.search(r'((?:ENCIK|PUAN|CIKGU)\s+[A-Z\s]+?)(?=\s+TARIKH)', text, re.IGNORECASE)
             if match:
-                cleaned_name = ' '.join(match.group(1).upper().split())
+                cleaned_name = self._clean_account_holder_name(' '.join(match.group(1).upper().split()))
                 logger.info(f"Extracted Bank Islam account holder: {cleaned_name}")
                 return cleaned_name
         
-        # Generic fallback patterns
         match = re.search(r'((?:ENCIK|PUAN|CIKGU)\s+[A-Z\s]+?)(?=\s+(?:TARIKH|STATEMENT|DATE|JALAN|LOT|NO\.|NOMBOR))', text, re.IGNORECASE)
         if match:
-            cleaned_name = ' '.join(match.group(1).upper().split())
+            cleaned_name = self._clean_account_holder_name(' '.join(match.group(1).upper().split()))
             logger.info(f"Extracted account holder (generic title): {cleaned_name}")
             return cleaned_name
         
         match = re.search(r'([A-Z][A-Z\s]+?(?:ANAK|BINTI|BIN)\s+[A-Z]+)(?=\s+(?:No\.Akaun|Account\s+No|DIA\s+RUMAH|\d{10,}))', text, re.IGNORECASE)
         if match:
-            cleaned_name = ' '.join(match.group(1).upper().split())
+            cleaned_name = self._clean_account_holder_name(' '.join(match.group(1).upper().split()))
             logger.info(f"Extracted account holder (generic BIN/BINTI): {cleaned_name}")
             return cleaned_name
         
@@ -574,9 +588,17 @@ class FieldExtractor:
             if match:
                 return match.group(1)
         
-        date_range_match = re.search(r'(\d{2}/\d{2}/\d{2,4})\s*(?:-|to|TO)\s*(\d{2}/\d{2}/\d{2,4})', text, re.IGNORECASE)
-        if date_range_match:
-            return date_range_match.group(1)
+        date_range_patterns = [
+            r'(\d{2}/\d{2}/\d{2,4})\s*(?:-|to|TO|hingga)\s*(\d{2}/\d{2}/\d{2,4})',
+            r'(?:From|Dari)[:\s]*(\d{2}/\d{2}/\d{2,4})',
+            r'(?:Period|Tempoh)[:\s]*(\d{2}/\d{2}/\d{2,4})\s*(?:-|to)',
+            r'(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4})\s*(?:-|to|hingga)'
+        ]
+        
+        for pattern_str in date_range_patterns:
+            match = re.search(pattern_str, text, re.IGNORECASE)
+            if match:
+                return match.group(1)
         
         return self._extract_first_transaction_date(text, statement_date)
     
@@ -590,9 +612,17 @@ class FieldExtractor:
             if match:
                 return match.group(1)
         
-        date_range_match = re.search(r'(\d{2}/\d{2}/\d{2,4})\s*(?:-|to|TO)\s*(\d{2}/\d{2}/\d{2,4})', text, re.IGNORECASE)
-        if date_range_match:
-            return date_range_match.group(2)
+        date_range_patterns = [
+            r'(\d{2}/\d{2}/\d{2,4})\s*(?:-|to|TO|hingga)\s*(\d{2}/\d{2}/\d{2,4})',
+            r'(?:To|Hingga)[:\s]*(\d{2}/\d{2}/\d{2,4})',
+            r'(?:Period|Tempoh)[:\s]*\d{2}/\d{2}/\d{2,4}\s*(?:-|to)\s*(\d{2}/\d{2}/\d{2,4})',
+            r'\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4}\s*(?:-|to|hingga)\s*(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4})'
+        ]
+        
+        for pattern_str in date_range_patterns:
+            match = re.search(pattern_str, text, re.IGNORECASE)
+            if match:
+                return match.group(2) if match.lastindex >= 2 else match.group(1)
         
         return self._extract_last_transaction_date(text, statement_date)
     
