@@ -101,8 +101,7 @@ class StatementMerger:
             "total_credit": total_credit,
             "statement_period_from": statement_period_from,
             "statement_period_to": statement_period_to,
-            "page_count": len(group),
-            "pages": [doc.get("document_number") for doc in group]
+            "page_count": len(group)
         }
         
         total_text_length = sum(doc.get("text_length", 0) for doc in group)
@@ -118,7 +117,8 @@ class StatementMerger:
             "merged_from_pages": len(group)
         }
         
-        logger.info(f"Merged pages {merged_data['pages']} into single statement")
+        page_numbers = [doc.get("document_number") for doc in group]
+        logger.info(f"Merged pages {page_numbers} into single statement")
         logger.info(f"Opening: {opening_balance}, Closing: {closing_balance}")
         
         return merged_doc
