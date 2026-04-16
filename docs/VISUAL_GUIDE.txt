@@ -1,0 +1,246 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                 DOCUMENT EXTRACTION POC - COMPLETE PROJECT                     ║
+║                          Project Structure Created                             ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+📦 PROJECT STRUCTURE
+═══════════════════════════════════════════════════════════════════════════════
+
+document-extraction-poc/
+│
+├─ 📂 app/                          ← FastAPI Application
+│  ├─ main.py                       ← Entry point
+│  ├─ config.py                     ← Configuration
+│  └─ 📂 api/
+│     ├─ routes.py                  ← API endpoints
+│     └─ schemas.py                 ← Data models
+│
+├─ 📂 core/                         ← Core Processing Logic
+│  ├─ ocr_engine.py                 ← OCR (3 engines)
+│  ├─ document_classifier.py        ← Type detection
+│  ├─ extractor.py                  ← Field extraction
+│  └─ validators.py                 ← Data validation
+│
+├─ 📂 models/                       ← Data Models
+│  ├─ payslip.py
+│  ├─ bank_statement.py
+│  └─ extraction_result.py
+│
+├─ 📂 utils/                        ← Utilities
+│  ├─ pdf_processor.py              ← PDF → Image
+│  ├─ text_cleaner.py               ← Text normalization
+│  ├─ logger.py                     ← Logging
+│  └─ helpers.py                    ← Helpers
+│
+├─ 📂 config/                       ← Configuration
+│  ├─ extraction_config.json        ← Field mapping
+│  ├─ ocr_config.json               ← OCR settings
+│  └─ app_config.yaml               ← App settings
+│
+├─ 📂 tests/                        ← Tests
+│  └─ test_extractor.py
+│
+├─ 📂 docs/                         ← Documentation
+│  ├─ SETUP.md                      ← Setup guide
+│  ├─ API.md                        ← API docs
+│  └─ ARCHITECTURE.md               ← Architecture
+│
+├─ README.md                        ← Overview
+├─ requirements.txt                 ← Dependencies
+├─ .env.example                     ← Environment
+└─ .gitignore                       ← Git ignore
+
+
+🎯 EXTRACTED FIELDS
+═══════════════════════════════════════════════════════════════════════════════
+
+PAYSLIP (6 fields)
+┌─────────────────────────────────────────────────────────────┐
+│ • name                 → SITI HAZIRAH BT MUSTAFA            │
+│ • id_number            → 800408-06-5592                     │
+│ • gross_income         → 15,898.00                          │
+│ • net_income           → 9,888.20                           │
+│ • total_deduction      → 6,009.80                           │
+│ • month_year           → 02/2026                            │
+└─────────────────────────────────────────────────────────────┘
+
+BANK STATEMENT (3 fields)
+┌─────────────────────────────────────────────────────────────┐
+│ • account_holder_name  → SITI AISAH BINTI GHAZALI           │
+│ • account_number       → 51-1103355-2                       │
+│ • statement_date       → 28/02/2026                         │
+└─────────────────────────────────────────────────────────────┘
+
+
+🔄 PROCESSING PIPELINE
+═══════════════════════════════════════════════════════════════════════════════
+
+User Upload
+    ↓
+[API: POST /upload]
+    ↓
+[PDF Processor] ──→ Convert PDF to images
+    ↓
+[OCR Engine] ──→ Extract text (PaddleOCR/EasyOCR/Tesseract)
+    ↓
+[Document Classifier] ──→ Identify: Payslip or Bank Statement
+    ↓
+[Text Cleaner] ──→ Normalize and clean text
+    ↓
+[Field Extractor] ──→ Extract specific fields
+    ↓
+[Data Validator] ──→ Validate & calculate confidence score
+    ↓
+[JSON Output] ──→ Save results
+    ↓
+User Retrieval [GET /result/{id}]
+
+
+🚀 QUICK START (5 STEPS)
+═══════════════════════════════════════════════════════════════════════════════
+
+1️⃣  Navigate to project
+    $ cd document-extraction-poc
+
+2️⃣  Create virtual environment
+    $ python -m venv venv
+    $ venv\Scripts\activate  (Windows)
+    $ source venv/bin/activate  (Linux/Mac)
+
+3️⃣  Install dependencies
+    $ pip install -r requirements.txt
+
+4️⃣  Create directories
+    $ mkdir -p uploads/raw uploads/processed output/json output/logs temp
+
+5️⃣  Run application
+    $ python -m app.main
+
+    ✅ API available at: http://localhost:8000
+
+
+📚 DOCUMENTATION
+═══════════════════════════════════════════════════════════════════════════════
+
+File                    Purpose
+─────────────────────────────────────────────────────────────────────────────
+SETUP_INSTRUCTIONS.md   Quick start guide
+PROJECT_SUMMARY.md      Project overview
+FILES_CREATED.md        List of all files
+docs/SETUP.md           Detailed setup guide
+docs/API.md             API documentation
+docs/ARCHITECTURE.md    System architecture
+
+
+🔧 TECHNOLOGY STACK
+═══════════════════════════════════════════════════════════════════════════════
+
+Framework       → FastAPI
+Language        → Python 3.10+
+OCR Engines     → PaddleOCR / EasyOCR / Tesseract
+PDF Processing  → PyMuPDF
+Data Validation → Pydantic
+Testing         → Pytest
+Async           → AsyncIO
+
+
+📊 API ENDPOINTS
+═══════════════════════════════════════════════════════════════════════════════
+
+POST   /api/upload              Upload document for extraction
+GET    /api/status/{upload_id}  Check processing status
+GET    /api/result/{upload_id}  Retrieve extraction results
+GET    /health                  Health check
+
+
+✨ KEY FEATURES
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Multi-format support (PDF, JPG, PNG, DOCX)
+✅ Multiple OCR engines (CPU-optimized)
+✅ Automatic document classification
+✅ Field extraction with confidence scoring
+✅ Data validation and normalization
+✅ Comprehensive error handling
+✅ Production-ready logging
+✅ Fully documented
+✅ Extensible architecture
+✅ Test suite included
+
+
+📋 CONFIGURATION FILES
+═══════════════════════════════════════════════════════════════════════════════
+
+extraction_config.json
+├─ Payslip fields
+│  ├─ name
+│  ├─ id_number
+│  ├─ gross_income
+│  ├─ net_income
+│  ├─ total_deduction
+│  └─ month_year
+└─ Bank statement fields
+   ├─ account_holder_name
+   ├─ account_number
+   └─ statement_date
+
+ocr_config.json
+├─ Engine selection (paddleocr/easyocr/tesseract)
+├─ Language settings
+├─ Confidence thresholds
+└─ Image processing parameters
+
+app_config.yaml
+├─ Server settings
+├─ File upload limits
+├─ Processing parameters
+└─ Logging configuration
+
+
+🎯 NEXT STEPS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Read SETUP_INSTRUCTIONS.md
+2. Install dependencies: pip install -r requirements.txt
+3. Choose OCR engine (PaddleOCR recommended)
+4. Test with sample documents from Dataset/ folder
+5. Customize extraction_config.json for your documents
+6. Deploy to production with authentication
+
+
+📞 SUPPORT
+═══════════════════════════════════════════════════════════════════════════════
+
+Documentation   → docs/ folder
+Setup Help      → SETUP_INSTRUCTIONS.md
+API Reference   → docs/API.md
+Architecture    → docs/ARCHITECTURE.md
+Logs            → output/logs/app.log
+
+
+✅ PROJECT STATUS
+═══════════════════════════════════════════════════════════════════════════════
+
+[✓] Project structure created
+[✓] All modules implemented
+[✓] Configuration files ready
+[✓] API endpoints defined
+[✓] Data models created
+[✓] Validation logic implemented
+[✓] Documentation complete
+[✓] Tests included
+[✓] Requirements.txt ready
+[→] Install dependencies
+[→] Configure OCR engine
+[→] Test with sample documents
+[→] Deploy to production
+
+
+🎉 YOU'RE ALL SET!
+═══════════════════════════════════════════════════════════════════════════════
+
+Your complete Document Extraction POC project is ready to use.
+
+Start with: SETUP_INSTRUCTIONS.md
+
+Happy extracting! 🚀

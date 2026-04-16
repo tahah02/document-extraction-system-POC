@@ -1,0 +1,441 @@
+﻿================================================================================
+                    DOCUMENT EXTRACTION POC
+                        PROJECT STRUCTURE
+================================================================================
+
+PROJECT ROOT: document-extraction-poc/
+
+================================================================================
+DIRECTORY STRUCTURE
+================================================================================
+
+document-extraction-poc/
+
+  app/                          FastAPI Application Layer
+    main.py                      Entry point & server startup
+    config.py                    Application configuration
+    __init__.py
+     api/
+        routes.py                API endpoints (upload, status, result)
+        schemas.py               Pydantic response models
+        __init__.py
+
+  core/                         Core Processing Logic
+    pipeline.py                  Main processing pipeline
+    ocr_engine.py                OCR integration (Tesseract/PaddleOCR)
+    document_classifier.py       Document type detection
+    extractor.py                 Field extraction logic
+    validators.py                Data validation & confidence scoring
+    __init__.py
+
+  models/                       Data Models
+    payslip.py                   Payslip data model
+    bank_statement.py            Bank statement data model
+    extraction_result.py         Result wrapper model
+    __init__.py
+
+  utils/                        Utility Functions
+    pdf_processor.py             PDF to image conversion
+    text_cleaner.py              Text normalization & cleaning
+    file_manager.py              File operations
+    logger.py                    Logging configuration
+    helpers.py                   Helper functions
+    __init__.py
+
+  config/                       Configuration Files
+    app_config.yaml              Application settings
+    extraction_config.json       Field mapping & patterns
+    ocr_config.json              OCR engine settings
+
+  docs/                         Documentation
+    README.md                    Complete project guide
+    SETUP.md                     Setup instructions
+    API.md                       API documentation
+    ARCHITECTURE.md              System architecture
+    PROJECT_FLOW.md              Processing flow diagram
+    PROJECT_STRUCTURE.txt        This file
+
+  tests/                        Test Suite
+    test_extractor.py            Extractor tests
+    __init__.py
+
+  uploads/                      File Storage
+     raw/                      Original uploaded PDFs
+     processed/                Converted images (UUID folders)
+
+  output/                       Processing Results
+     json/                     Extracted data (JSON files)
+     logs/                     Application logs
+
+  venv/                         Python Virtual Environment
+    Scripts/                     Executable scripts
+    Lib/                         Installed packages
+    Include/                     Header files
+
+ .env                             Environment variables
+ .gitignore                       Git ignore rules
+ requirements-minimal.txt         Python dependencies
+ postman_collection.json          Postman API collection
+ project-solution/                (Empty - for reference)
+
+================================================================================
+KEY FILES DESCRIPTION
+================================================================================
+
+APPLICATION ENTRY POINT
+  app/main.py
+    - FastAPI application initialization
+    - Server configuration (host, port, workers)
+    - Background task setup
+    - CORS configuration
+
+API ROUTES
+  app/api/routes.py
+    - POST /api/upload              Upload PDF for processing
+    - GET /api/status/{upload_id}   Check processing status
+    - GET /api/result/{upload_id}   Retrieve extraction results
+    - GET /health                   Health check endpoint
+
+CORE PROCESSING
+  core/pipeline.py
+    - Orchestrates entire processing workflow
+    - Manages PDF  Image  OCR  Extraction  Validation
+
+  core/ocr_engine.py
+    - Tesseract OCR integration
+    - Text extraction from images
+    - Language configuration
+
+  core/document_classifier.py
+    - Identifies document type (Payslip/Bank Statement)
+    - Keyword-based classification
+    - Confidence scoring
+
+  core/extractor.py
+    - Extracts specific fields from text
+    - Pattern matching for field values
+    - Handles both Payslip and Bank Statement formats
+
+  core/validators.py
+    - Validates extracted data format
+    - Calculates confidence scores
+    - Checks data completeness
+
+DATA MODELS
+  models/payslip.py
+    - Fields: name, id_number, gross_income, net_income, total_deduction, month_year
+
+  models/bank_statement.py
+    - Fields: account_holder_name, account_number, statement_date
+
+  models/extraction_result.py
+    - Wrapper for API responses
+    - Contains status, upload_id, results, metadata
+
+UTILITIES
+  utils/pdf_processor.py
+    - Converts PDF pages to PNG images
+    - Handles multi-page PDFs
+    - Image quality optimization
+
+  utils/text_cleaner.py
+    - Removes special characters
+    - Normalizes whitespace
+    - Handles encoding issues
+
+  utils/file_manager.py
+    - Creates/manages upload directories
+    - Handles file cleanup
+    - Manages file paths
+
+  utils/logger.py
+    - Configures logging
+    - File and console handlers
+    - Log rotation
+
+CONFIGURATION
+  config/app_config.yaml
+    - Server settings (host, port, workers)
+    - File upload limits
+    - Processing timeouts
+    - Logging levels
+
+  config/extraction_config.json
+    - Field patterns for Payslip
+    - Field patterns for Bank Statement
+    - Keyword lists for classification
+
+  config/ocr_config.json
+    - OCR engine selection
+    - Language settings
+    - Confidence thresholds
+
+================================================================================
+EXTRACTED FIELDS
+================================================================================
+
+PAYSLIP (6 fields)
+   name                 Employee name
+   id_number            NRIC/ID number
+   gross_income         Gross salary amount
+   net_income           Net salary amount
+   total_deduction      Total deductions
+   month_year           Pay period (MM/YYYY)
+
+BANK STATEMENT (3 fields)
+   account_holder_name  Account owner name
+   account_number       Bank account number
+   statement_date       Statement date
+
+================================================================================
+PROCESSING PIPELINE
+================================================================================
+
+1. USER UPLOAD
+    POST /api/upload with PDF file
+
+2. FILE STORAGE
+    Save to uploads/raw/{upload_id}.pdf
+
+3. PDF PROCESSING
+    Convert PDF pages to images
+    Save to uploads/processed/{upload_id}/page_*.png
+
+4. OCR EXTRACTION
+    Extract text from each image using Tesseract
+    Combine text from all pages
+
+5. DOCUMENT CLASSIFICATION
+    Analyze text for keywords
+    Determine: Payslip or Bank Statement
+
+6. FIELD EXTRACTION
+    Apply regex patterns to extract fields
+    Handle multiple formats and variations
+
+7. DATA VALIDATION
+    Validate field formats
+    Calculate confidence scores
+    Check data completeness
+
+8. RESULT STORAGE
+    Save to output/json/{upload_id}.json
+    Store in memory for API retrieval
+
+9. USER RETRIEVAL
+    GET /api/result/{upload_id}
+    Return extracted data with metadata
+
+================================================================================
+DEPENDENCIES
+================================================================================
+
+Core Framework
+  - fastapi              Web framework
+  - uvicorn              ASGI server
+  - pydantic             Data validation
+
+PDF & Image Processing
+  - pymupdf              PDF to image conversion
+  - pillow               Image processing
+  - opencv-python       Computer vision
+
+OCR Engines
+  - pytesseract          Tesseract wrapper
+  - paddleocr            PaddleOCR (optional)
+  - easyocr              EasyOCR (optional)
+
+Utilities
+  - python-dotenv        Environment variables
+  - pyyaml               YAML configuration
+  - aiofiles             Async file operations
+  - numpy                Numerical operations
+
+Development
+  - pytest               Testing framework
+  - black                Code formatter
+  - flake8               Linter
+
+================================================================================
+CONFIGURATION EXAMPLES
+================================================================================
+
+app_config.yaml
+  server:
+    host: 0.0.0.0
+    port: 8003
+    workers: 1
+  upload:
+    max_file_size: 50MB
+    allowed_formats: [pdf, jpg, png]
+  processing:
+    timeout: 300 seconds
+    temp_dir: ./temp
+
+extraction_config.json
+  payslip:
+    keywords: ["Gaji", "KWSP", "Cukai Pendapatan"]
+    fields:
+      name: ["Nama", "Name"]
+      id_number: ["No K/P", "NRIC"]
+      gross_income: ["Gaji Pokok", "Gross"]
+      net_income: ["Gaji Bersih", "Net"]
+      total_deduction: ["Jumlah Potongan", "Deduction"]
+      month_year: ["Bulan", "Month"]
+
+ocr_config.json
+  engine: tesseract
+  language: mal+eng
+  confidence_threshold: 0.5
+  image_preprocessing: true
+
+================================================================================
+API ENDPOINTS SUMMARY
+================================================================================
+
+POST /api/upload
+  Description: Upload PDF for extraction
+  Request: multipart/form-data with file
+  Response: {status, upload_id, message}
+  Example: curl -F "file=@document.pdf" http://localhost:8003/api/upload
+
+GET /api/status/{upload_id}
+  Description: Check processing status
+  Response: {status, upload_id, message}
+  Example: curl http://localhost:8003/api/status/abc-123-def
+
+GET /api/result/{upload_id}
+  Description: Get extraction results
+  Response: {upload_id, file_type, documents, summary, metadata}
+  Example: curl http://localhost:8003/api/result/abc-123-def
+
+GET /health
+  Description: Health check
+  Response: {status: "healthy"}
+  Example: curl http://localhost:8003/health
+
+================================================================================
+QUICK START
+================================================================================
+
+1. Install dependencies
+   pip install -r requirements-minimal.txt
+
+2. Install Tesseract OCR
+   Download: https://github.com/UB-Mannheim/tesseract/wiki
+   Install to: C:\Program Files\Tesseract-OCR
+
+3. Create required directories
+   mkdir -p uploads/raw uploads/processed output/json output/logs
+
+4. Start server
+   python -m app.main
+
+5. Access API
+   Swagger UI: http://localhost:8003/docs
+   API Base: http://localhost:8003/api
+
+================================================================================
+DOCUMENTATION FILES
+================================================================================
+
+README.md
+  - Complete project overview
+  - Setup instructions
+  - API documentation
+  - Technology stack
+  - Troubleshooting guide
+
+SETUP.md
+  - Detailed setup steps
+  - Dependency installation
+  - Configuration guide
+  - Verification steps
+
+API.md
+  - API endpoint documentation
+  - Request/response examples
+  - Error codes
+  - Postman collection info
+
+ARCHITECTURE.md
+  - System architecture diagram
+  - Component descriptions
+  - Data flow
+  - Design patterns
+
+PROJECT_FLOW.md
+  - Processing pipeline visualization
+  - Step-by-step flow
+  - Feature checklist
+  - Future enhancements
+
+PROJECT_STRUCTURE.txt
+  - This file
+  - Directory structure
+  - File descriptions
+  - Quick reference
+
+================================================================================
+TESTING
+================================================================================
+
+Run Tests
+  pytest tests/
+
+Run Specific Test
+  pytest tests/test_extractor.py
+
+Run with Coverage
+  pytest --cov=core tests/
+
+Test Files
+  tests/test_extractor.py
+    - Tests for field extraction logic
+    - Tests for pattern matching
+    - Tests for data validation
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Tesseract Not Found
+   Install from: https://github.com/UB-Mannheim/tesseract/wiki
+   Set TESSERACT_CMD in app/main.py
+
+oneDNN Warning
+   Environment variables already configured in app/main.py
+   Safe to ignore
+
+Low Confidence Scores
+   Improve extraction patterns in core/extractor.py
+   Adjust OCR settings in config/ocr_config.json
+   Test with better quality PDFs
+
+Processing Timeout
+   Increase timeout in config/app_config.yaml
+   Check file size (max 50MB)
+   Verify OCR engine is working
+
+================================================================================
+VERSION & UPDATES
+================================================================================
+
+Version: 0.1.0
+Last Updated: April 6, 2026
+Python: 3.13+
+Status: Production Ready
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. Read docs/README.md for complete overview
+2. Follow docs/SETUP.md for installation
+3. Test with sample PDFs from Dataset/ folder
+4. Customize extraction_config.json for your documents
+5. Deploy to production with authentication
+6. Monitor logs in output/logs/app.log
+
+================================================================================
+

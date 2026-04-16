@@ -1,3 +1,8 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
 # Python
 __pycache__/
 *.py[cod]
@@ -20,36 +25,33 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environments
+# Virtual Environment
 venv/
-venv311/
-env/
 ENV/
-env.bak/
-venv.bak/
+env/
 
-# IDEs
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# Project specific
-uploads/
-output/
-*.log
-.env
 .DS_Store
 
-# Pytest
+# Project Specific
+uploads/
+temp/
+output/
+*.log
 .pytest_cache/
 .coverage
 htmlcov/
 
-# Jupyter
-.ipynb_checkpoints/
+# Folders to exclude
+docs/
+Result/
+Dataset/
 
-# Keep existing git repos (don't track nested repos)
-bank-statement-extractor/.git/
-pay-slip-extractor/.git/
+# OS
+Thumbs.db
+.DS_Store
