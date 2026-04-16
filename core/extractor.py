@@ -472,6 +472,21 @@ class FieldExtractor:
                     logger.warning(f"Bank Islam closing balance calculation failed: {str(e)}")
         
         if bank_type == 'public_islamic':
+            closing_patterns = [
+                r'(?:Baki Penutup|Closing Balance)[:\s]*(?:RM)?[:\s]*([0-9,\.]+)',
+                r'Closing Balance In This Statement[:\s]*([0-9,\.]+)',
+                r'([0-9,\.]+)\s*(?:Baki Penutup|Closing Balance)'
+            ]
+            
+            for pattern in closing_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    value = match.group(1)
+                    normalized = NumberFormatter.normalize(value, bank_type)
+                    if normalized:
+                        logger.info(f"Public Islamic closing balance found: {value} -> {normalized}")
+                        return str(normalized)
+            
             summary_match = re.search(r'(?:RINGKASAN|SUMMARY|HIGHLIGHTS)', text, re.IGNORECASE)
             if summary_match:
                 summary_text = text[summary_match.start():summary_match.start()+1000]
@@ -479,7 +494,8 @@ class FieldExtractor:
                 if match:
                     value = match.group(1)
                     normalized = NumberFormatter.normalize(value, bank_type)
-                    return str(normalized) if normalized else None
+                    if normalized:
+                        return str(normalized)
         
         for keyword in keywords:
             match = re.search(rf'{keyword}[:\s]*(?:RM)?[:\s]*([0-9,\.]+)', text, re.IGNORECASE)

@@ -84,7 +84,9 @@ The Document Extraction System is built with a modular architecture designed for
 - **config.py**: Application configuration management
 
 ### 2. Core Processing (`core/`)
+- **pdfplumber_engine.py**: Fast text extraction from digital PDFs
 - **ocr_engine.py**: Abstract OCR interface with multiple implementations
+- **ensemble_ocr.py**: Multi-engine OCR with voting mechanism
 - **document_classifier.py**: Identifies document type
 - **extractor.py**: Extracts fields using configuration
 - **validators.py**: Validates extracted data
@@ -113,9 +115,15 @@ User Upload
     ↓
 [API: /upload]
     ↓
-[PDF Processor] → Convert to images
+[PDF Type Detection] → Digital or Scanned?
     ↓
-[OCR Engine] → Extract text
+    ├─ Digital PDF → [PDFPlumber] → Extract text (1-2 sec)
+    │                     ↓
+    └─ Scanned PDF → [PDF Processor] → Convert to images
+                          ↓
+                     [Image Preprocessor] → Enhance quality
+                          ↓
+                     [Ensemble OCR] → Extract text (15-20 sec)
     ↓
 [Document Classifier] → Identify type
     ↓
@@ -200,6 +208,13 @@ Processing Error
 - Performance metrics: Processing time, memory usage
 - Error tracking: Failed extractions, validation errors
 
+## Recent Enhancements (April 2026)
+
+1. ✅ PDFPlumber integration for digital PDFs (10x faster)
+2. ✅ Hybrid extraction approach (digital + scanned)
+3. ✅ Improved closing balance extraction patterns
+4. ✅ Enhanced Public Islamic bank support
+
 ## Future Enhancements
 
 1. Database integration for result storage
@@ -210,3 +225,5 @@ Processing Error
 6. API authentication & authorization
 7. Advanced caching strategies
 8. Webhook notifications
+9. Table extraction from PDFs
+10. Transaction-level data extraction

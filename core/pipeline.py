@@ -11,6 +11,7 @@ from core.extractor import FieldExtractor
 from core.validators import DataValidator
 from core.config import get_config
 from core.statement_merger import StatementMerger
+from core.pdfplumber_engine import PDFPlumberEngine
 from utils.pdf_processor import PDFProcessor
 from utils.text_cleaner import TextCleaner
 from utils.file_manager import FileManager
@@ -37,6 +38,7 @@ class ExtractionPipeline:
         self.text_cleaner = TextCleaner()
         self.classifier = DocumentClassifier()
         self.extractor = FieldExtractor(template=template)
+        self.pdfplumber_engine = PDFPlumberEngine()
         
         self.use_preprocessing = PREPROCESSING_AVAILABLE
         if self.use_preprocessing:
@@ -137,6 +139,82 @@ class ExtractionPipeline:
         try:
             logger.info(f"Starting processing for {upload_id}")
             
+            use_pdfplumber = self.pdfplumber_engine.can_extract_text(file_path)
+            
+            if use_pdfplumber:
+                logger.info("Digital PDF detected, using pdfplumber for fast extraction")
+                return self._process_with_pdfplumber(upload_id, file_path)
+            else:
+                logger.info("Scanned PDF detected, using OCR pipeline")
+                return self._process_with_ocr(upload_id, file_path)
+                
+        except Exception as e:
+            logger.error(f"Processing error: {str(e)}")
+            raise
+    
+    def _process_with_pdfplumber(self, upload_id: str, file_path: str) -> Dict[str, Any]:
+        try:
+            full_text, tokens = self.pdfplumber_engine.extract_text_from_pdf(file_path)
+            
+            full_text = self.text_cleaner.clean_text(full_text)
+            
+            logger.info(f"Extracted text length: {len(full_text)}")
+            
+            try:
+                debug_text_path = Path(self.file_manager.get_processed_dir(upload_id)) / "extracted_text_pdfplumber.txt"
+                with open(debug_text_path, 'w', encoding='utf-8') as f:
+                    f.write(full_text)
+                logger.info(f"Saved extracted text to {debug_text_path}")
+            except Exception as e:
+                logger.warning(f"Could not save debug text: {str(e)}")
+            
+            doc_type, type_confidence = self.classifier.classify(full_text, self.template)
+            logger.info(f"Classified as: {doc_type} (confidence: {type_confidence})")
+            
+            extracted_data = self.extractor.extract_bank_statement_fields(full_text, tokens=tokens)
+            is_valid, validation_msg = DataValidator.validate_bank_statement(extracted_data, self.template)
+            
+            confidence = self.extractor.calculate_confidence(extracted_data)
+            logger.info(f"Extraction confidence: {confidence}")
+            
+            document = {
+                "document_number": 1,
+                "document_type": doc_type,
+                "extracted_data": extracted_data,
+                "confidence_score": confidence,
+                "text_length": len(full_text),
+                "extraction_method": "pdfplumber"
+            }
+            
+            config = get_config(self.template)
+            
+            result = {
+                "upload_id": upload_id,
+                "file_type": "pdf",
+                "total_documents": 1,
+                "documents": [document],
+                "summary": {
+                    "bank_statements": 1 if doc_type == "bank_statement" else 0,
+                    "other": 0 if doc_type == "bank_statement" else 1,
+                    "average_confidence": round(confidence, 2)
+                },
+                "processing_completed_at": datetime.now().isoformat(),
+                "original_file": f"raw/{upload_id}.pdf",
+                "total_text_length": len(full_text),
+                "config_version": config.get("config_version", "unknown"),
+                "template_used": self.template or "default",
+                "extraction_method": "pdfplumber"
+            }
+            
+            logger.info(f"PDFPlumber processing completed for {upload_id}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"PDFPlumber processing failed: {str(e)}, falling back to OCR")
+            return self._process_with_ocr(upload_id, file_path)
+    
+    def _process_with_ocr(self, upload_id: str, file_path: str) -> Dict[str, Any]:
+        try:
             page_count = PDFProcessor.get_pdf_page_count(file_path)
             logger.info(f"PDF has {page_count} pages")
             
@@ -196,14 +274,15 @@ class ExtractionPipeline:
                 "original_file": f"raw/{upload_id}.pdf",
                 "total_text_length": total_text_length,
                 "config_version": config.get("config_version", "unknown"),
-                "template_used": self.template or "default"
+                "template_used": self.template or "default",
+                "extraction_method": "ocr"
             }
             
-            logger.info(f"Processing completed for {upload_id}")
+            logger.info(f"OCR processing completed for {upload_id}")
             return result
         
         except Exception as e:
-            logger.error(f"Processing error: {str(e)}")
+            logger.error(f"OCR processing error: {str(e)}")
             raise
     
     def save_result(self, upload_id: str, result: Dict[str, Any]):
