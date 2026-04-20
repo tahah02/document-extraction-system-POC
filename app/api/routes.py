@@ -1,12 +1,21 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
 from typing import Optional
+from typing import Optional
+import uuid
 import uuid
 import json
+import json
+from app.api.schemas import UploadResponse, StatusResponse, ErrorResponse
 from app.api.schemas import UploadResponse, StatusResponse, ErrorResponse
 from utils.logger import logger
+from utils.logger import logger
+from core.pipeline import ExtractionPipeline
 from core.pipeline import ExtractionPipeline
 from core.language_detector import LanguageDetector
+from core.language_detector import LanguageDetector
 from utils.file_manager import FileManager
+from utils.file_manager import FileManager
+
 
 router = APIRouter()
 

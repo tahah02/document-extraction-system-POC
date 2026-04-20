@@ -57,6 +57,13 @@ The Document Extraction System is built with a modular architecture designed for
 │  │  │    - Format verification                       │  │   │
 │  │  │    - Confidence scoring                        │  │   │
 │  │  └────────────────────────────────────────────────┘  │   │
+│  │                      ↓                                │   │
+│  │  ┌────────────────────────────────────────────────┐  │   │
+│  │  │ 7. Language Detector (language_detector.py)    │  │   │
+│  │  │    - Detect language of extracted text         │  │   │
+│  │  │    - Confidence scoring                        │  │   │
+│  │  │    - Multi-language support                    │  │   │
+│  │  └────────────────────────────────────────────────┘  │   │
 │  └──────────────────────────────────────────────────────┘   │
 │                           ↓                                   │
 │  ┌──────────────────────────────────────────────────────┐   │
@@ -81,6 +88,7 @@ The Document Extraction System is built with a modular architecture designed for
 - **document_classifier.py**: Identifies document type
 - **extractor.py**: Extracts fields using configuration
 - **validators.py**: Validates extracted data
+- **language_detector.py**: Detects language of extracted text
 
 ### 3. Utilities (`utils/`)
 - **pdf_processor.py**: PDF to image conversion
@@ -116,6 +124,8 @@ User Upload
 [Field Extractor] → Extract fields
     ↓
 [Data Validator] → Validate & score
+    ↓
+[Language Detector] → Detect language
     ↓
 [JSON Output] → Store results
     ↓

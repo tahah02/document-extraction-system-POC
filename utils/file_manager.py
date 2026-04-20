@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class FileManager:
     
-    def __init__(self, base_dir: str = "uploads"):
+    def __init__(self, base_dir: str = "document-extraction-poc/uploads"):
         self.base_dir = base_dir
         self.raw_dir = f"{base_dir}/raw"
         self.processed_dir = f"{base_dir}/processed"

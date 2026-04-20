@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any
 import logging
+import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +16,38 @@ class OCREngine(ABC):
     @abstractmethod
     def extract_text_with_coordinates(self, image_path: str) -> List[Dict[str, Any]]:
         pass
+    
+    def extract_tokens(self, image_path: str, page: int = 0) -> List[Dict[str, Any]]:
+        raw_data = self.extract_text_with_coordinates(image_path)
+        tokens = []
+        
+        for item in raw_data:
+            bbox = item['bbox']
+            
+            if isinstance(bbox, list) and len(bbox) == 4:
+                if all(isinstance(x, list) for x in bbox):
+                    x_coords = [p[0] for p in bbox]
+                    y_coords = [p[1] for p in bbox]
+                    normalized_bbox = [min(x_coords), min(y_coords), max(x_coords), max(y_coords)]
+                else:
+                    normalized_bbox = bbox
+            else:
+                normalized_bbox = [0, 0, 0, 0]
+            
+            token = {
+                'text': item['text'],
+                'bbox': normalized_bbox,
+                'x0': normalized_bbox[0],
+                'y0': normalized_bbox[1],
+                'x1': normalized_bbox[2],
+                'y1': normalized_bbox[3],
+                'confidence': item['confidence'],
+                'page': page,
+                '_used_by': None
+            }
+            tokens.append(token)
+        
+        return tokens
 
 class PaddleOCREngine(OCREngine):
     
